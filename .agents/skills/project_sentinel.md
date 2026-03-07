@@ -21,3 +21,8 @@
 - Collection Structure:
     - `conversations`: Stores the metadata and the calculated `risk_score`.
     - `messages`: Stores individual text chunks with timestamps and specific NLP scores.
+
+## Strict Guardrails
+- NEVER overwrite or modify the `.env` file. 
+- ALWAYS use `MONGODB_URI` for database connections, not `MONGODB_URL`.
+- Expect the database name to be passed via `DB_NAME`.
