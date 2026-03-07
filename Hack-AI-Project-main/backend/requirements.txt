@@ -1,0 +1,8 @@
+python-multipart
+google-generativeai
+pillow
+fastapi
+uvicorn
+motor
+pydantic-settings
+elevenlabs
