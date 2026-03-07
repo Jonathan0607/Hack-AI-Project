@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Sentinel Command',
+  title: 'Project Haven',
   description: 'Real-time Conversation Analysis',
 }
 
@@ -13,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-[#020617] text-slate-200 antialiased">
+      <body className="bg-[#5A9C8D] text-white antialiased">
         {children}
       </body>
     </html>

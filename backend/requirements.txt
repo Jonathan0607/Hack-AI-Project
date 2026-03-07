@@ -3,3 +3,7 @@ motor
 pydantic-settings
 uvicorn
 python-dotenv
+python-multipart
+google-generativeai
+pillow
+elevenlabs
