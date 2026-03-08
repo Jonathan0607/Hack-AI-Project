@@ -3,7 +3,7 @@ import json
 import asyncio
 import google.generativeai as genai
 from fastapi import FastAPI, HTTPException, UploadFile, File
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic_settings import BaseSettings
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -12,15 +12,22 @@ import PIL.Image
 import io
 import httpx
 from elevenlabs.client import ElevenLabs
+from twilio.rest import Client as TwilioClient
+from twilio.twiml.voice_response import VoiceResponse, Connect
+from fastapi import WebSocket, WebSocketDisconnect
+import base64
 from analytics.stats_engine import RiskAnalyzer
 
 class Settings(BaseSettings):
-    mongodb_uri: str = "mongodb://localhost:27017"
-    db_name: str = "haven"
     gemini_api_key: str = ""
     elevenlabs_api_key: str = ""
     port: str = "8000"
     next_public_api_url: str = "http://localhost:8000"
+    twilio_account_sid: str = ""
+    twilio_auth_token: str = ""
+    twilio_phone_number: str = ""
+    ngrok_authtoken: str = ""
+    vapi_key: str = ""
 
     class Config:
         env_file = "../.env"
@@ -36,6 +43,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def log_requests(request, call_next):
+    print(f"DEBUG: Incoming request: {request.method} {request.url}")
+    response = await call_next(request)
+    print(f"DEBUG: Response status: {response.status_code}")
+    return response
 
 # Configure Gemini with the provided API key
 genai.configure(api_key=settings.gemini_api_key)
@@ -106,6 +120,7 @@ The user is asking you a follow up question.
 You MUST provide helpful, supportive, and highly actionable advice.
 Critically, you must use your Google Search grounding tool to explicitly provide and link to real-world resources (e.g. real therapists, hospital articles, verifiable abuse hotlines, reputable psychological associations).
 Ensure the tone is supportive, professional, and clear. Format your response strictly using rich Markdown formatting (e.g. bolding, bullet points, hyperlinks to actual websites).
+Keep your responses extremely concise and to the point. Limit your response to 2-3 short paragraphs at most, and focus on direct, practical advice without being overwhelming.
 """
 
 class ChatRequest(BaseModel):
@@ -114,13 +129,39 @@ class ChatRequest(BaseModel):
     question: str
 
 @app.on_event("startup")
-async def startup_db_client():
-    app.mongodb_client = AsyncIOMotorClient(settings.mongodb_uri)
-    app.mongodb = app.mongodb_client[settings.db_name]
+async def startup_events():
+    # Ngrok Tunnel initialization
+    app.state.public_url = "https://unevangelized-karolyn-workmanly.ngrok-free.dev"
+    app.state.frontend_url = "https://hanna-unidentified-basically.ngrok-free.dev"
+    
+    # Check for external Ngrok URL first (managed by CLI)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    tunnel_file = os.path.join(current_dir, "tunnel_url.txt")
+    frontend_file = os.path.join(current_dir, "frontend_url.txt")
+
+    print(f"DEBUG: Looking for tunnel files in: {current_dir}")
+
+    if os.path.exists(tunnel_file):
+        try:
+            with open(tunnel_file, "r") as f:
+                app.state.public_url = f.read().strip()
+                print(f"DEBUG: Using Ngrok backend URL from file: {app.state.public_url}")
+        except Exception as e:
+            print(f"DEBUG: Error reading tunnel_url.txt: {e}")
+
+    if os.path.exists(frontend_file):
+        try:
+            with open(frontend_file, "r") as f:
+                app.state.frontend_url = f.read().strip()
+                print(f"DEBUG: Using Ngrok frontend URL from file: {app.state.frontend_url}")
+        except Exception as e:
+            print(f"DEBUG: Error reading frontend_url.txt: {e}")
+
+    pass
 
 @app.on_event("shutdown")
-async def shutdown_db_client():
-    app.mongodb_client.close()
+async def shutdown_events():
+    pass
 
 @app.get("/")
 async def root():
@@ -128,57 +169,11 @@ async def root():
 
 @app.get("/conversations")
 async def get_conversations():
-    cursor = app.mongodb.conversations.find().sort("risk_score", -1)
-    conversations = await cursor.to_list(length=100)
-    for conv in conversations:
-        conv["_id"] = str(conv["_id"])
-    return conversations
+    return []
 
 @app.get("/stream/{id}")
 async def stream_conversation(id: str):
-    async def event_generator():
-        conv = await app.mongodb.conversations.find_one({"thread_id": id})
-        if not conv:
-            yield "data: {\"error\": \"Not found\"}\n\n"
-            return
-            
-        analyzer = RiskAnalyzer()
-        
-        for msg in conv.get("messages", []):
-            await asyncio.sleep(1)
-            
-            text_to_analyze = msg.get("text", "")
-            full_prompt = f"{SYSTEM_PROMPT_AUDIO}\n\nTranscript:\n{text_to_analyze}"
-            
-            try:
-                response = await asyncio.wait_for(
-                    analysis_model.generate_content_async(full_prompt),
-                    timeout=15.0
-                )
-                result = json.loads(response.text)
-                scores = result.get("analysis", {})
-            except Exception as e:
-                print(f"Error calling Gemini in stream: {e}")
-                scores = {
-                    "error": "API Timeout",
-                    "toxicity_score": 0,
-                    "control_score": 0,
-                    "gaslighting_score": 0,
-                    "overall_risk_score": 0,
-                    "signal_detected": False,
-                    "z_score": 0.0
-                }
-                
-            analysis = analyzer.analyze(scores)
-            
-            msg.update(scores)
-            msg.update(analysis)
-            
-            yield f"data: {json.dumps(msg)}\n\n"
-        
-        yield "event: end\ndata: {}\n\n"
-
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    raise HTTPException(status_code=404, detail="Conversation storage is disabled")
 
 @app.post("/analyze-screenshot")
 async def analyze_screenshot(file: UploadFile = File(...)):
@@ -302,3 +297,119 @@ async def chat_with_analysis(request: ChatRequest):
     except Exception as e:
         print(f"Error in chat endpoint: {e}")
         return {"answer": "Network latency detected. Please try your search again."}
+
+@app.post("/initiate-call")
+async def initiate_call(to_number: str):
+    try:
+        # Ensure number is in E.164 format (simple version for US)
+        if not to_number.startswith('+'):
+            if len(to_number) == 10:
+                to_number = f"+1{to_number}"
+            else:
+                to_number = f"+{to_number}"
+
+        print(f"Initiating Vapi call to {to_number}")
+        
+        async with httpx.AsyncClient() as client:
+            headers = {
+                "Authorization": f"Bearer {settings.vapi_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "phoneNumberId": "1f160ff1-b07a-482a-bc05-ad145bc099c7",
+                "customer": {
+                    "number": to_number
+                }
+            }
+            response = await client.post(
+                "https://api.vapi.ai/call/phone", 
+                headers=headers, 
+                json=payload, 
+                timeout=30.0
+            )
+            
+            if response.status_code not in (200, 201):
+                error_msg = response.text
+                print(f"Vapi API Error: {error_msg}")
+                raise HTTPException(status_code=500, detail=f"Failed to initiate call via Vapi: {error_msg}")
+                
+            data = response.json()
+            print(f"DEBUG: Vapi Outbound call successful, Call ID: {data.get('id')}")
+            return {"call_sid": data.get("id")}
+            
+    except Exception as e:
+        error_msg = str(e)
+        print(f"Error initiating call: {error_msg}")
+        raise HTTPException(status_code=500, detail=error_msg)
+
+@app.websocket("/twilio-voice-stream")
+async def twilio_voice_stream(websocket: WebSocket):
+    await websocket.accept()
+    print("Twilio WebSocket connected")
+    
+    # ElevenLabs STS WebSocket URL
+    # Voice ID: QLAlOeRuLwKX0skeTR7R
+    voice_id = "QLAlOeRuLwKX0skeTR7R"
+    sts_url = f"wss://api.elevenlabs.io/v1/speech-to-speech/{voice_id}/stream-input?model_id=eleven_english_sts_v2"
+    
+    async with httpx.AsyncClient() as client:
+        # ElevenLabs requires a WebSocket for real-time STS
+        # We'll use the 'websockets' library for the ElevenLabs connection
+        import websockets as ws_lib
+        
+        async with ws_lib.connect(sts_url, extra_headers={"xi-api-key": settings.elevenlabs_api_key}) as el_ws:
+            # Send initial configuration
+            bos_message = {
+                "text": " ", # STS requires text even if empty for initiation
+                "voice_settings": {
+                    "stability": 0.5,
+                    "similarity_boost": 0.8
+                },
+                "generation_config": {
+                    "chunk_length_schedule": [120, 160, 250, 290]
+                }
+            }
+            await el_ws.send(json.dumps(bos_message))
+            
+            async def receive_from_el():
+                try:
+                    async for message in el_ws:
+                        data = json.loads(message)
+                        if data.get("audio"):
+                            # Send audio back to Twilio
+                            audio_payload = data["audio"]
+                            media_message = {
+                                "event": "media",
+                                "media": {
+                                    "payload": audio_payload
+                                }
+                            }
+                            await websocket.send_text(json.dumps(media_message))
+                except Exception as e:
+                    print(f"Error receiving from ElevenLabs: {e}")
+
+            asyncio.create_task(receive_from_el())
+            
+            try:
+                while True:
+                    data = await websocket.receive_text()
+                    msg = json.loads(data)
+                    
+                    if msg["event"] == "media":
+                        # Forward audio chunk to ElevenLabs
+                        payload = msg["media"]["payload"]
+                        el_msg = {
+                            "audio": payload,
+                            "flush": False
+                        }
+                        await el_ws.send(json.dumps(el_msg))
+                    elif msg["event"] == "stop":
+                        print("Twilio stopped the stream")
+                        break
+            except WebSocketDisconnect:
+                print("Twilio WebSocket disconnected")
+            except Exception as e:
+                print(f"Error in Twilio stream loop: {e}")
+            finally:
+                # End stream with ElevenLabs
+                await el_ws.send(json.dumps({"audio": ""}))
