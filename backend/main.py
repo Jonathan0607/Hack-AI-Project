@@ -12,22 +12,32 @@ import PIL.Image
 import io
 import httpx
 from elevenlabs.client import ElevenLabs
+<<<<<<< HEAD
+from analytics.stats_engine import RiskAnalyzer
+=======
 from twilio.rest import Client as TwilioClient
 from twilio.twiml.voice_response import VoiceResponse, Connect
 from fastapi import WebSocket, WebSocketDisconnect
 import base64
+>>>>>>> main
 
 class Settings(BaseSettings):
     mongodb_uri: str = "mongodb://localhost:27017"
     db_name: str = "haven"
     gemini_api_key: str = ""
     elevenlabs_api_key: str = ""
+<<<<<<< HEAD
+    port: str = "8000"
+    next_public_api_url: str = "http://localhost:8000"
+=======
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""
     twilio_phone_number: str = ""
+>>>>>>> main
 
     class Config:
         env_file = "../.env"
+        extra = "ignore"
 
 settings = Settings()
 app = FastAPI(title="Project Haven")
@@ -155,9 +165,39 @@ async def stream_conversation(id: str):
         if not conv:
             yield "data: {\"error\": \"Not found\"}\n\n"
             return
+            
+        analyzer = RiskAnalyzer()
         
         for msg in conv.get("messages", []):
             await asyncio.sleep(1)
+            
+            text_to_analyze = msg.get("text", "")
+            full_prompt = f"{SYSTEM_PROMPT_AUDIO}\n\nTranscript:\n{text_to_analyze}"
+            
+            try:
+                response = await asyncio.wait_for(
+                    analysis_model.generate_content_async(full_prompt),
+                    timeout=15.0
+                )
+                result = json.loads(response.text)
+                scores = result.get("analysis", {})
+            except Exception as e:
+                print(f"Error calling Gemini in stream: {e}")
+                scores = {
+                    "error": "API Timeout",
+                    "toxicity_score": 0,
+                    "control_score": 0,
+                    "gaslighting_score": 0,
+                    "overall_risk_score": 0,
+                    "signal_detected": False,
+                    "z_score": 0.0
+                }
+                
+            analysis = analyzer.analyze(scores)
+            
+            msg.update(scores)
+            msg.update(analysis)
+            
             yield f"data: {json.dumps(msg)}\n\n"
         
         yield "event: end\ndata: {}\n\n"
@@ -170,11 +210,25 @@ async def analyze_screenshot(file: UploadFile = File(...)):
         contents = await file.read()
         image = PIL.Image.open(io.BytesIO(contents))
         
-        response = analysis_model.generate_content([SYSTEM_PROMPT_SCREENSHOT, image])
-        
-        # Ensure we return valid JSON
-        result = json.loads(response.text)
-        return result
+        try:
+            response = await asyncio.wait_for(
+                asyncio.to_thread(analysis_model.generate_content, [SYSTEM_PROMPT_SCREENSHOT, image]),
+                timeout=20.0
+            )
+            # Ensure we return valid JSON
+            result = json.loads(response.text)
+            return result
+        except Exception as api_e:
+            print(f"API Error calling Gemini: {api_e}")
+            return {
+                "error": "API Timeout",
+                "toxicity_score": 0,
+                "control_score": 0,
+                "gaslighting_score": 0,
+                "overall_risk_score": 0,
+                "signal_detected": False,
+                "z_score": 0.0
+            }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -186,19 +240,37 @@ async def transcribe_audio(file: UploadFile = File(...)):
         audio_stream = io.BytesIO(contents)
         audio_stream.name = "audio.webm" # Required for correct MIME type detection in ElevenLabs SDK
 
-        transcription_result = elevenlabs_client.speech_to_text.convert(
-             file=audio_stream,
-             model_id="scribe_v1"
-        )
-        
-        transcript = transcription_result.text
-        
-        # Analyze transcript using Gemini
-        full_prompt = f"{SYSTEM_PROMPT_AUDIO}\n\nTranscript:\n{transcript}"
-        response = analysis_model.generate_content(full_prompt)
-        
-        # Ensure we return valid JSON (with the exact same structure as the screenshot endpoint)
-        result = json.loads(response.text)
+        try:
+            transcription_result = await asyncio.wait_for(
+                asyncio.to_thread(
+                    elevenlabs_client.speech_to_text.convert,
+                    file=audio_stream,
+                    model_id="scribe_v1"
+                ),
+                timeout=20.0
+            )
+            transcript = transcription_result.text
+            
+            # Analyze transcript using Gemini
+            full_prompt = f"{SYSTEM_PROMPT_AUDIO}\n\nTranscript:\n{transcript}"
+            response = await asyncio.wait_for(
+                asyncio.to_thread(analysis_model.generate_content, full_prompt),
+                timeout=20.0
+            )
+            
+            # Ensure we return valid JSON (with the exact same structure as the screenshot endpoint)
+            result = json.loads(response.text)
+        except Exception as api_err:
+            print(f"API Error during transcription/analysis: {api_err}")
+            return {
+                "error": "API Timeout",
+                "toxicity_score": 0,
+                "control_score": 0,
+                "gaslighting_score": 0,
+                "overall_risk_score": 0,
+                "signal_detected": False,
+                "z_score": 0.0
+            }
         
         # Explicitly set the extracted text to match the transcript just in case Gemini gets confused
         result["extracted_text"] = [
@@ -207,6 +279,13 @@ async def transcribe_audio(file: UploadFile = File(...)):
                "text": transcript
             }
         ]
+
+        # Pass live Gemini scores through RiskAnalyzer
+        analyzer = RiskAnalyzer()
+        analysis_scores = analyzer.analyze(result.get("analysis", {}))
+        if "analysis" not in result:
+            result["analysis"] = {}
+        result["analysis"].update(analysis_scores)
 
         return result
     except Exception as e:
@@ -238,7 +317,7 @@ async def chat_with_analysis(request: ChatRequest):
             
             if response.status_code != 200:
                 print(f"Gemini API Error: {response.text}")
-                raise HTTPException(status_code=500, detail="Error generating chat response")
+                return {"answer": "Network latency detected. Please try your search again."}
                 
             data = response.json()
             answer_text = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -246,6 +325,9 @@ async def chat_with_analysis(request: ChatRequest):
         return {"answer": answer_text}
     except Exception as e:
         print(f"Error in chat endpoint: {e}")
+<<<<<<< HEAD
+        return {"answer": "Network latency detected. Please try your search again."}
+=======
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/initiate-call")
@@ -352,3 +434,4 @@ async def twilio_voice_stream(websocket: WebSocket):
             finally:
                 # End stream with ElevenLabs
                 await el_ws.send(json.dumps({"audio": ""}))
+>>>>>>> main

@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+<<<<<<< HEAD
+import { AlertCircle, CheckCircle2, MessageSquare, Play, Upload, FileImage, Loader2, Info, Mic, Square, Send, User, Bot } from 'lucide-react';
+import { Conversation, Message } from '../types';
+=======
 import { AlertCircle, CheckCircle2, MessageSquare, Play, Upload, FileImage, Loader2, Info, Mic, Square, Send, User, Bot, Phone, PhoneForwarded } from 'lucide-react';
+>>>>>>> main
 
 const getRiskColor = (score: number) => {
   if (score >= 0.8 || score >= 8) return 'text-red-500 bg-red-500/10 border-red-500/20';
@@ -23,9 +28,9 @@ const getProgressBarColor = (score: number) => {
 };
 
 export default function HavenDashboard() {
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeThread, setActiveThread] = useState<string | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
@@ -49,10 +54,18 @@ export default function HavenDashboard() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const endOfChatRef = useRef<HTMLDivElement>(null);
 
+<<<<<<< HEAD
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+=======
   // STS specific states
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isCalling, setIsCalling] = useState(false);
   const [callSid, setCallSid] = useState<string | null>(null);
+>>>>>>> main
 
   useEffect(() => {
     if (endOfChatRef.current) {
@@ -132,9 +145,22 @@ export default function HavenDashboard() {
       if (!res.ok) throw new Error("Failed to analyze image");
 
       const data = await res.json();
-      setAnalysisResult(data);
+      if (data.error) {
+        showToast("Network latency. Retrying analysis...");
+        setAnalysisResult({
+          extracted_text: [{ sender: "system", text: "Analysis unavailable due to network latency." }],
+          analysis: data
+        });
+      } else {
+        setAnalysisResult(data);
+      }
     } catch (error) {
       console.error("Error analyzing screenshot:", error);
+      showToast("Network latency. Retrying analysis...");
+      setAnalysisResult({
+        extracted_text: [{ sender: "system", text: "Analysis unavailable due to network timeout." }],
+        analysis: { error: "API Timeout", toxicity_score: 0, control_score: 0, gaslighting_score: 0, overall_risk_score: 0, signal_detected: false, z_score: 0 }
+      });
     } finally {
       setIsAnalyzing(false);
     }
@@ -192,9 +218,22 @@ export default function HavenDashboard() {
       if (!res.ok) throw new Error("Failed to transcribe and analyze audio");
 
       const data = await res.json();
-      setAnalysisResult(data);
+      if (data.error) {
+        showToast("Network latency. Retrying analysis...");
+        setAnalysisResult({
+          extracted_text: [{ sender: "system", text: "Transcription unavailable due to network latency." }],
+          analysis: data
+        });
+      } else {
+        setAnalysisResult(data);
+      }
     } catch (error) {
       console.error("Error analyzing audio:", error);
+      showToast("Network latency. Retrying analysis...");
+      setAnalysisResult({
+        extracted_text: [{ sender: "system", text: "Transcription unavailable due to network timeout." }],
+        analysis: { error: "API Timeout", toxicity_score: 0, control_score: 0, gaslighting_score: 0, overall_risk_score: 0, signal_detected: false, z_score: 0 }
+      });
     } finally {
       setIsAnalyzing(false);
     }
@@ -396,6 +435,11 @@ export default function HavenDashboard() {
                       LIVE SYNC
                     </span>
                   )}
+                  {messages.length > 0 && messages[messages.length - 1].z_score !== undefined && (
+                    <span className="ml-4 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 font-mono text-sm tracking-widest shadow-inner">
+                      RISK VELOCITY: {messages[messages.length - 1].z_score?.toFixed(2)}
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => startReplay(activeThread)}
@@ -417,12 +461,18 @@ export default function HavenDashboard() {
                         key={idx}
                         className={`flex ${isPartner ? 'justify-start' : 'justify-end'}`}
                       >
-                        <div className={`max-w-[75%] rounded-2xl p-4 md:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.1)] backdrop-blur-sm ${isPartner
+                        <div className={`max-w-[75%] rounded-2xl p-4 md:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-all duration-300 ${isPartner
                             ? 'bg-[#1E3A5F]/40 border border-[#2A4B6E] text-[#F9F8F4] rounded-tl-sm'
                             : 'bg-[#F9F8F4] border border-[#2A4B6E]/40 text-[#1E3A5F] rounded-tr-sm'
-                          }`}>
+                          } ${msg.signal_detected ? '!border-[4px] !border-red-500 !bg-red-500/20 shadow-[0_0_35px_rgba(239,68,68,0.7)] relative overflow-hidden' : ''}`}>
+                          {msg.signal_detected && (
+                            <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-red-500 via-rose-500 to-red-500"></div>
+                          )}
                           <div className="text-xs opacity-70 mb-2 flex justify-between items-center gap-6 font-medium">
-                            <span className="uppercase tracking-wider opacity-90">{msg.sender.replace('_', ' ')}</span>
+                            <span className={`uppercase tracking-wider opacity-90 ${msg.signal_detected ? 'text-red-500 font-bold' : ''}`}>
+                              {msg.sender.replace('_', ' ')}
+                              {msg.signal_detected && ' • ALERT'}
+                            </span>
                             <span className="font-mono opacity-80">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
                           </div>
                           <p className="leading-relaxed text-[15px] sm:text-base">{msg.text}</p>
@@ -668,9 +718,13 @@ export default function HavenDashboard() {
                                   <div className={`max-w-[85%] rounded-2xl p-3 md:p-4 text-sm shadow-md backdrop-blur-sm ${isSelf
                                       ? 'bg-[#F9F8F4] border border-[#2A4B6E]/40 text-[#1E3A5F] rounded-tr-sm'
                                       : 'bg-[#1E3A5F]/40 border border-[#2A4B6E] text-[#F9F8F4] rounded-tl-sm'
-                                    }`}>
-                                    <div className="text-[10px] opacity-70 mb-1 font-medium tracking-wider uppercase">
+                                    } ${analysisResult.analysis.signal_detected ? '!border-[4px] !border-red-500 !bg-red-500/20 shadow-[0_0_35px_rgba(239,68,68,0.7)] relative overflow-hidden' : ''}`}>
+                                    {analysisResult.analysis.signal_detected && (
+                                       <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-red-500 via-rose-500 to-red-500"></div>
+                                    )}
+                                    <div className={`text-[10px] mb-1 font-medium tracking-wider uppercase ${analysisResult.analysis.signal_detected ? 'text-red-500 font-bold opacity-100' : 'opacity-70'}`}>
                                       {msg.sender === 'speaker' ? 'TRANSCRIBED AUDIO' : msg.sender}
+                                      {analysisResult.analysis.signal_detected && ' • ALERT'}
                                     </div>
                                     <p className="leading-relaxed">{msg.text}</p>
                                   </div>
@@ -891,6 +945,19 @@ export default function HavenDashboard() {
         background: #475569;
       }
     `}} />
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-6 right-6 bg-[#1A2E44] text-amber-400 px-6 py-4 rounded-xl shadow-2xl border border-amber-500/30 z-50 flex items-center gap-3 backdrop-blur-md"
+          >
+            <AlertCircle className="w-5 h-5" />
+            <span className="font-semibold tracking-wide">{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
