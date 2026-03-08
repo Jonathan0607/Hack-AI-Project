@@ -1,21 +1,40 @@
 import os
+import io
 import json
 import asyncio
+import logging
+from datetime import datetime
+
+# Configure logging at the absolute start
+log_file = os.path.join(os.path.dirname(__file__), "debug_log.txt")
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+logger.info("--- BACKEND STARTING UP ---")
+
 import google.generativeai as genai
-from fastapi import FastAPI, HTTPException, UploadFile, File
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, WebSocket, WebSocketDisconnect
 from pydantic_settings import BaseSettings
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import PIL.Image
-import io
 import httpx
 from elevenlabs.client import ElevenLabs
 from twilio.rest import Client as TwilioClient
 from twilio.twiml.voice_response import VoiceResponse, Connect
-from fastapi import WebSocket, WebSocketDisconnect
 import base64
+import re
+from typing import List, Optional
+from bson import ObjectId
+from database import connect_to_mongo, close_mongo_connection, get_db
+from models import AnalysisEntry, ChatRequest
 
 class Settings(BaseSettings):
     gemini_api_key: str = ""
@@ -25,10 +44,15 @@ class Settings(BaseSettings):
     twilio_phone_number: str = ""
     ngrok_authtoken: str = ""
     vapi_key: str = ""
+    mongodb_uri: str = ""
+    db_name: str = ""
 
     class Config:
         env_file = "../.env"
         extra = "ignore"
+
+# Logic moved to top of file
+# ...
 
 settings = Settings()
 app = FastAPI(title="Project Haven")
@@ -43,9 +67,9 @@ app.add_middleware(
 
 @app.middleware("http")
 async def log_requests(request, call_next):
-    print(f"DEBUG: Incoming request: {request.method} {request.url}")
+    logger.info(f"DEBUG: Incoming request: {request.method} {request.url}")
     response = await call_next(request)
-    print(f"DEBUG: Response status: {response.status_code}")
+    logger.info(f"DEBUG: Response status: {response.status_code}")
     return response
 
 # Configure Gemini with the provided API key
@@ -57,9 +81,17 @@ generation_config_json = {
   "max_output_tokens": 8192,
   "response_mime_type": "application/json",
 }
+safety_settings = [
+  {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+  {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+  {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+  {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+]
+
 analysis_model = genai.GenerativeModel(
   model_name="gemini-2.5-flash",
   generation_config=generation_config_json,
+  safety_settings=safety_settings
 )
 
 # Configure ElevenLabs with the provided API key
@@ -82,7 +114,9 @@ Please provide your analysis strictly in the following JSON format:
     "control_score": <int 0-10>,
     "gaslighting_score": <int 0-10>,
     "overall_risk_score": <int 0-10>,
-    "explanation": "A concise explanation of the scores (strictly 3 to 5 sentences long). You MUST explicitly cite the specific DSM-5 diagnostic criteria and real articles/resources from hospitals or therapists that justify these scores."
+    "explanation": "A concise explanation of the scores (strictly 3 to 5 sentences long). You MUST explicitly cite the specific DSM-5 diagnostic criteria and real articles/resources from hospitals or therapists that justify these scores.",
+    "tags": ["Manipulation", "Stalking", "Hostility", "Coercion", "Gaslighting", "Boundary Testing"],
+    "partner_name": "String if identified, otherwise Unknown"
   }
 }
 """
@@ -104,7 +138,9 @@ Please provide your analysis strictly in the following JSON format:
     "control_score": <int 0-10>,
     "gaslighting_score": <int 0-10>,
     "overall_risk_score": <int 0-10>,
-    "explanation": "A concise explanation of the scores (strictly 3 to 5 sentences long). You MUST explicitly cite the specific DSM-5 diagnostic criteria and real articles/resources from hospitals or therapists that justify these scores."
+    "explanation": "A concise explanation of the scores (strictly 3 to 5 sentences long). You MUST explicitly cite the specific DSM-5 diagnostic criteria and real articles/resources from hospitals or therapists that justify these scores.",
+    "tags": ["Manipulation", "Hostility", "Fear", "Confusion", "Coercion"],
+    "partner_name": "Unknown"
   }
 }
 """
@@ -120,10 +156,7 @@ Ensure the tone is supportive, professional, and clear. Format your response str
 Keep your responses extremely concise and to the point. Limit your response to 2-3 short paragraphs at most, and focus on direct, practical advice without being overwhelming.
 """
 
-class ChatRequest(BaseModel):
-    extracted_text: list
-    analysis: dict
-    question: str
+# ChatRequest moved to models.py
 
 @app.on_event("startup")
 async def startup_events():
@@ -154,11 +187,11 @@ async def startup_events():
         except Exception as e:
             print(f"DEBUG: Error reading frontend_url.txt: {e}")
 
-    pass
+    await connect_to_mongo(settings.mongodb_uri, settings.db_name)
 
 @app.on_event("shutdown")
 async def shutdown_events():
-    pass
+    await close_mongo_connection()
 
 @app.get("/")
 async def root():
@@ -168,45 +201,218 @@ async def root():
 async def get_conversations():
     return []
 
+@app.get("/analyses")
+async def get_analyses(contact_name: Optional[str] = None):
+    db = get_db()
+    if db is None:
+        return []
+    
+    query = {}
+    if contact_name:
+        query["contact_name"] = contact_name
+        
+    cursor = db.analyses.find(query).sort("timestamp", -1)
+    analyses = await cursor.to_list(length=100)
+    # Convert ObjectId to string
+    for a in analyses:
+        a["_id"] = str(a["_id"])
+        if "timestamp" in a and isinstance(a["timestamp"], datetime):
+            a["timestamp"] = a["timestamp"].isoformat()
+    return analyses
+
+@app.post("/analyses/{analysis_id}/reflection")
+async def save_reflection(analysis_id: str, reflection: dict):
+    db = get_db()
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    
+    result = await db.analyses.update_one(
+        {"_id": ObjectId(analysis_id)},
+        {"$set": {"user_reflection": reflection.get("content")}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    
+    return {"status": "success"}
+
+@app.get("/stats")
+async def get_stats():
+    db = get_db()
+    if db is None:
+        return {}
+    
+    # Aggregation for tags and average scores
+    cursor = db.analyses.find({}, {"analysis": 1})
+    docs = await cursor.to_list(length=1000)
+    
+    tag_counts = {}
+    total_risk = 0
+    count = 0
+    
+    for d in docs:
+        analysis = d.get("analysis", {})
+        tags = analysis.get("tags", [])
+        for t in tags:
+            tag_counts[t] = tag_counts.get(t, 0) + 1
+        
+        total_risk += analysis.get("overall_risk_score", 0)
+        count += 1
+            
+    return {
+        "tag_counts": tag_counts,
+        "avg_risk_score": total_risk / count if count > 0 else 0,
+        "total_analyses": count
+    }
+
+@app.get("/contacts")
+async def get_contacts():
+    db = get_db()
+    if db is None:
+        return []
+    
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$contact_name",
+                "relationship": {"$first": "$relationship_type"},
+                "avg_risk": {"$avg": "$analysis.overall_risk_score"},
+                "highest_risk": {"$max": "$analysis.overall_risk_score"},
+                "incident_count": {"$sum": 1},
+                "last_incident": {"$max": "$timestamp"}
+            }
+        },
+        {"$sort": {"highest_risk": -1}}
+    ]
+    
+    cursor = db.analyses.aggregate(pipeline)
+    contacts = await cursor.to_list(length=100)
+    
+    # Format for frontend
+    formatted_contacts = []
+    for c in contacts:
+        formatted_contacts.append({
+            "name": c["_id"],
+            "relationship": c["relationship"],
+            "avgRisk": round(c["avg_risk"], 1) if c["avg_risk"] else 0,
+            "highestRisk": c["highest_risk"],
+            "count": c["incident_count"],
+            "lastSeen": c["last_incident"].isoformat() if isinstance(c["last_incident"], datetime) else None
+        })
+        
+    return formatted_contacts
+
 @app.get("/stream/{id}")
 async def stream_conversation(id: str):
     raise HTTPException(status_code=404, detail="Conversation storage is disabled")
 
 @app.post("/analyze-screenshot")
-async def analyze_screenshot(file: UploadFile = File(...)):
+async def analyze_screenshot(
+    file: UploadFile = File(...),
+    contact_name: Optional[str] = Form("Unknown"),
+    relationship_type: Optional[str] = Form("Unknown")
+):
     try:
         contents = await file.read()
         image = PIL.Image.open(io.BytesIO(contents))
         
+        logger.info(f"DEBUG: Analyzing screenshot for contact: {contact_name}")
         response = analysis_model.generate_content([SYSTEM_PROMPT_SCREENSHOT, image])
         
-        # Ensure we return valid JSON
-        result = json.loads(response.text)
+        # Check if response was blocked
+        if not response.candidates or not response.candidates[0].content.parts:
+            logger.error(f"ERROR: Gemini response blocked. Finish reason: {response.candidates[0].finish_reason if response.candidates else 'Unknown'}")
+            raise HTTPException(status_code=500, detail=f"Analysis blocked by safety filters. Reason: {response.candidates[0].finish_reason if response.candidates else 'Unknown'}")
+
+        # Robust JSON parsing
+        text_content = response.text
+        logger.info(f"DEBUG: Gemini raw response length: {len(text_content)}")
+        
+        # Remove markdown code blocks if present
+        json_match = re.search(r'\{.*\}', text_content, re.DOTALL)
+        if json_match:
+            clean_json = json_match.group(0)
+        else:
+            clean_json = text_content
+            
+        try:
+            result = json.loads(clean_json)
+        except json.JSONDecodeError as je:
+            logger.error(f"ERROR decoding JSON from Gemini: {je}. Raw: {text_content[:200]}")
+            # Fallback for very messy responses
+            raise HTTPException(status_code=500, detail="Failed to parse analysis metadata.")
+        
+        db = get_db()
+        if db is not None:
+            analysis_data = result.get("analysis", {})
+            # Ensure required fields exist
+            for field in ["toxicity_score", "control_score", "gaslighting_score", "overall_risk_score"]:
+                if field not in analysis_data: analysis_data[field] = 0
+            if "explanation" not in analysis_data: analysis_data["explanation"] = "No explanation provided."
+            if "tags" not in analysis_data: analysis_data["tags"] = []
+
+            analysis_doc = AnalysisEntry(
+                source="screenshot",
+                extracted_text=result.get("extracted_text", []),
+                analysis=analysis_data,
+                contact_name=contact_name if (contact_name and contact_name != "Unknown") else analysis_data.get("partner_name", "Unknown"),
+                relationship_type=relationship_type,
+                tags=analysis_data.get("tags", [])
+            )
+            inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+            result["_id"] = str(inserted_result.inserted_id)
+            logger.info(f"DEBUG: Screenshot analysis saved with ID: {result['_id']}")
+            
         return result
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"ERROR in analyze_screenshot: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/transcribe-audio")
-async def transcribe_audio(file: UploadFile = File(...)):
+async def transcribe_audio(
+    file: UploadFile = File(...),
+    contact_name: Optional[str] = Form("Unknown"),
+    relationship_type: Optional[str] = Form("Unknown")
+):
     try:
         # Transcribe audio using ElevenLabs
         contents = await file.read()
         audio_stream = io.BytesIO(contents)
         audio_stream.name = "audio.webm" # Required for correct MIME type detection in ElevenLabs SDK
 
+        logger.info(f"DEBUG: Transcribing audio for contact: {contact_name}")
         transcription_result = elevenlabs_client.speech_to_text.convert(
              file=audio_stream,
              model_id="scribe_v1"
         )
         
         transcript = transcription_result.text
+        logger.info(f"DEBUG: Transcribed text: {transcript[:100]}...")
         
         # Analyze transcript using Gemini
         full_prompt = f"{SYSTEM_PROMPT_AUDIO}\n\nTranscript:\n{transcript}"
         response = analysis_model.generate_content(full_prompt)
         
-        # Ensure we return valid JSON (with the exact same structure as the screenshot endpoint)
-        result = json.loads(response.text)
+        # Check if response was blocked
+        if not response.candidates or not response.candidates[0].content.parts:
+            logger.error(f"ERROR: Gemini response (audio) blocked. Finish reason: {response.candidates[0].finish_reason if response.candidates else 'Unknown'}")
+            raise HTTPException(status_code=500, detail=f"Analysis blocked by safety filters. Reason: {response.candidates[0].finish_reason if response.candidates else 'Unknown'}")
+
+        # Robust JSON parsing
+        text_content = response.text
+        json_match = re.search(r'\{.*\}', text_content, re.DOTALL)
+        if json_match:
+            clean_json = json_match.group(0)
+        else:
+            clean_json = text_content
+            
+        try:
+            result = json.loads(clean_json)
+        except json.JSONDecodeError as je:
+            logger.error(f"ERROR decoding JSON (audio) from Gemini: {je}. Raw: {text_content[:200]}")
+            raise HTTPException(status_code=500, detail="Failed to parse analysis metadata.")
         
         # Explicitly set the extracted text to match the transcript just in case Gemini gets confused
         result["extracted_text"] = [
@@ -216,9 +422,32 @@ async def transcribe_audio(file: UploadFile = File(...)):
             }
         ]
 
+        db = get_db()
+        if db is not None:
+            analysis_data = result.get("analysis", {})
+            # Ensure required fields exist
+            for field in ["toxicity_score", "control_score", "gaslighting_score", "overall_risk_score"]:
+                if field not in analysis_data: analysis_data[field] = 0
+            if "explanation" not in analysis_data: analysis_data["explanation"] = "No explanation provided."
+            if "tags" not in analysis_data: analysis_data["tags"] = []
+
+            analysis_doc = AnalysisEntry(
+                source="audio",
+                extracted_text=result.get("extracted_text", []),
+                analysis=analysis_data,
+                contact_name=contact_name if (contact_name and contact_name != "Unknown") else analysis_data.get("partner_name", "Unknown"),
+                relationship_type=relationship_type,
+                tags=analysis_data.get("tags", [])
+            )
+            inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+            result["_id"] = str(inserted_result.inserted_id)
+            logger.info(f"DEBUG: Audio analysis saved with ID: {result['_id']}")
+
         return result
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Error processing audio: {e}")
+        logger.error(f"ERROR processing audio: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/chat")

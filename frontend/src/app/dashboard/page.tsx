@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, CheckCircle2, MessageSquare, Play, Upload, FileImage, Loader2, Info, Mic, Square, Send, User, Bot, Home, Activity, ShieldAlert, Cpu, Bird } from 'lucide-react';
-import { Conversation, Message } from '../types';
+import { AlertCircle, CheckCircle2, MessageSquare, Play, Upload, FileImage, Loader2, Info, Mic, Square, Send, User, Bot, Home, Activity, ShieldAlert, Cpu, Bird, Phone, PhoneForwarded, BarChart3, Users, Network, Clock, HelpCircle, UserPlus, ArrowRight, Shield } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Conversation, Message } from '../../types';
 
 const getRiskColor = (score: number) => {
   if (score >= 0.8 || score >= 8) return 'text-red-500 bg-red-50 border-red-100';
@@ -42,7 +43,7 @@ export default function HavenDashboard() {
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
   // Unified State Modules
-  const [activeTab, setActiveTab] = useState<'home' | 'live' | 'scan' | 'voice'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'live' | 'scan' | 'voice' | 'sts' | 'insights' | 'contacts'>('home');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any | null>(null);
 
@@ -61,6 +62,24 @@ export default function HavenDashboard() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const endOfChatRef = useRef<HTMLDivElement>(null);
 
+  // Insights & contact states
+  const [historicalData, setHistoricalData] = useState<any[]>([]);
+  const [statsData, setStatsData] = useState<any>(null);
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [selectedContactFilter, setSelectedContactFilter] = useState<string>('All');
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{ type: 'scan' | 'voice', data?: any } | null>(null);
+  const [contactInfo, setContactInfo] = useState({ name: '', relationship: 'Other' });
+  const [reflectionInput, setReflectionInput] = useState('');
+  const [isSavingReflection, setIsSavingReflection] = useState(false);
+
+  // STS states
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isCalling, setIsCalling] = useState(false);
+  const [callSid, setCallSid] = useState<string | null>(null);
+
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -74,11 +93,30 @@ export default function HavenDashboard() {
   }, [chatHistory, isChatLoading]);
 
   useEffect(() => {
-    fetch('http://localhost:8000/conversations')
+    fetch(`${BASE_URL}/conversations`)
       .then(res => res.json())
       .then(data => setConversations(data))
       .catch(err => console.error("Error fetching conversations:", err));
-  }, []);
+      
+    const historicalUrl = selectedContactFilter === 'All' 
+      ? `${BASE_URL}/analyses` 
+      : `${BASE_URL}/analyses?contact_name=${encodeURIComponent(selectedContactFilter)}`;
+      
+    fetch(historicalUrl)
+      .then(res => res.json())
+      .then(data => setHistoricalData(Array.isArray(data) ? data.reverse() : []))
+      .catch(err => console.error("Error fetching historical data:", err));
+      
+    fetch(`${BASE_URL}/stats`)
+      .then(res => res.json())
+      .then(data => setStatsData(data))
+      .catch(err => console.error("Error fetching stats:", err));
+      
+    fetch(`${BASE_URL}/contacts`)
+      .then(res => res.json())
+      .then(data => setContacts(data))
+      .catch(err => console.error("Error fetching contacts:", err));
+  }, [activeTab, selectedContactFilter]);
 
   useEffect(() => {
     if (endOfMessagesRef.current) {
@@ -91,7 +129,7 @@ export default function HavenDashboard() {
     setMessages([]);
     setIsStreaming(true);
 
-    const es = new EventSource(`http://localhost:8000/stream/${threadId}`);
+    const es = new EventSource(`${BASE_URL}/stream/${threadId}`);
 
     es.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -124,40 +162,47 @@ export default function HavenDashboard() {
     }
   };
 
-  const handleAnalyzeImage = async () => {
-    if (!selectedImage) return;
+  const initiateAnalysis = (type: 'scan' | 'voice', data?: any) => {
+    setPendingAction({ type, data });
+    setShowContactModal(true);
+  };
 
+  const handleAnalyzeImage = async (cName?: string, cRel?: string) => {
+    if (!selectedImage) return;
     setIsAnalyzing(true);
     setAnalysisResult(null);
-
+    setChatHistory([]);
     const formData = new FormData();
     formData.append('file', selectedImage);
-
+    formData.append('contact_name', cName || contactInfo.name || 'Unknown');
+    formData.append('relationship_type', cRel || contactInfo.relationship || 'Unknown');
     try {
-      const res = await fetch('http://localhost:8000/analyze-screenshot', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Failed to analyze image");
-
+      const res = await fetch(`${BASE_URL}/analyze-screenshot`, { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Failed');
       const data = await res.json();
-      if (data.error) {
-        showToast("Network latency. Retrying analysis...");
-        setAnalysisResult({
-          extracted_text: [{ sender: "system", text: "Analysis unavailable due to network latency." }],
-          analysis: data
-        });
-      } else {
-        setAnalysisResult(data);
-      }
+      setAnalysisResult(data);
     } catch (error) {
-      console.error("Error analyzing screenshot:", error);
-      showToast("Network latency. Retrying analysis...");
-      setAnalysisResult({
-        extracted_text: [{ sender: "system", text: "Analysis unavailable due to network timeout." }],
-        analysis: { error: "API Timeout", toxicity_score: 0, control_score: 0, gaslighting_score: 0, overall_risk_score: 0, signal_detected: false, z_score: 0 }
-      });
+      console.error('Error analyzing screenshot:', error);
+      showToast('Analysis failed. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleAnalyzeAudio = async (audioBlob: Blob, cName?: string, cRel?: string) => {
+    setIsAnalyzing(true);
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'audio.webm');
+    formData.append('contact_name', cName || contactInfo.name || 'Unknown');
+    formData.append('relationship_type', cRel || contactInfo.relationship || 'Unknown');
+    try {
+      const res = await fetch(`${BASE_URL}/transcribe-audio`, { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Failed');
+      const data = await res.json();
+      setAnalysisResult(data);
+    } catch (error) {
+      console.error('Error analyzing audio:', error);
+      showToast('Audio analysis failed.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -169,24 +214,19 @@ export default function HavenDashboard() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunks.current.push(e.data);
-      };
-
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.current.push(e.data); };
       recorder.onstop = () => {
         const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
         audioChunks.current = [];
-        handleAnalyzeAudio(audioBlob);
+        initiateAnalysis('voice', audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
-
       recorder.start();
       setMediaRecorder(recorder);
       setIsRecording(true);
     } catch (err) {
-      console.error("Microphone access denied or error:", err);
-      alert("Microphone access is required for voice analysis.");
+      console.error("Microphone access denied:", err);
+      alert("Microphone access is required.");
     }
   };
 
@@ -197,38 +237,31 @@ export default function HavenDashboard() {
     }
   };
 
-  const handleAnalyzeAudio = async (audioBlob: Blob) => {
-    setIsAnalyzing(true);
-    const formData = new FormData();
-    formData.append('file', audioBlob, 'audio.webm');
+  const handleSaveReflection = () => {
+    if (!reflectionInput.trim() || !analysisResult) return;
+    setIsSavingReflection(true);
+    setAnalysisResult((prev: any) => ({ ...prev, user_reflection: reflectionInput }));
+    setTimeout(() => { setIsSavingReflection(false); setReflectionInput(''); }, 600);
+  };
 
+  const handleInitiateCall = async () => {
+    if (!phoneNumber.trim()) return;
+    setIsCalling(true);
     try {
-      const res = await fetch('http://localhost:8000/transcribe-audio', {
-        method: 'POST',
-        body: formData,
+      const res = await fetch(`${BASE_URL}/initiate-call?to_number=${encodeURIComponent(phoneNumber)}`, {
+        method: 'POST'
       });
-
-      if (!res.ok) throw new Error("Failed to transcribe and analyze audio");
-
       const data = await res.json();
-      if (data.error) {
-        showToast("Network latency. Retrying analysis...");
-        setAnalysisResult({
-          extracted_text: [{ sender: "system", text: "Transcription unavailable due to network latency." }],
-          analysis: data
-        });
+      if (data.call_sid) {
+        setCallSid(data.call_sid);
+        showToast('Call initiated successfully.');
       } else {
-        setAnalysisResult(data);
+        showToast(data.error || 'Failed to initiate call.');
       }
     } catch (error) {
-      console.error("Error analyzing audio:", error);
-      showToast("Network latency. Retrying analysis...");
-      setAnalysisResult({
-        extracted_text: [{ sender: "system", text: "Transcription unavailable due to network timeout." }],
-        analysis: { error: "API Timeout", toxicity_score: 0, control_score: 0, gaslighting_score: 0, overall_risk_score: 0, signal_detected: false, z_score: 0 }
-      });
+      showToast('Call initiation failed.');
     } finally {
-      setIsAnalyzing(false);
+      setIsCalling(false);
     }
   };
 
@@ -242,7 +275,7 @@ export default function HavenDashboard() {
     setIsChatLoading(true);
 
     try {
-      const res = await fetch('http://localhost:8000/chat', {
+      const res = await fetch(`${BASE_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -324,7 +357,34 @@ export default function HavenDashboard() {
                   : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
               >
-                <Mic className="w-4 h-4" /> Voice Analysis
+                <Mic className="w-4 h-4" /> Voice
+              </button>
+              <button
+                onClick={() => setActiveTab('sts')}
+                className={`flex items-center gap-2 py-3 px-6 rounded-xl text-[15px] font-bold transition-all duration-300 ${activeTab === 'sts'
+                  ? 'bg-white text-[#1E3A5F] shadow-[0_8px_20px_rgba(30,58,95,0.2)]'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+              >
+                <Phone className="w-4 h-4" /> STS
+              </button>
+              <button
+                onClick={() => setActiveTab('insights')}
+                className={`flex items-center gap-2 py-3 px-6 rounded-xl text-[15px] font-bold transition-all duration-300 ${activeTab === 'insights'
+                  ? 'bg-white text-[#1E3A5F] shadow-[0_8px_20px_rgba(30,58,95,0.2)]'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+              >
+                <BarChart3 className="w-4 h-4" /> Insights
+              </button>
+              <button
+                onClick={() => setActiveTab('contacts')}
+                className={`flex items-center gap-2 py-3 px-6 rounded-xl text-[15px] font-bold transition-all duration-300 ${activeTab === 'contacts'
+                  ? 'bg-white text-[#1E3A5F] shadow-[0_8px_20px_rgba(30,58,95,0.2)]'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+              >
+                <Users className="w-4 h-4" /> Contacts
               </button>
             </div>
 
@@ -573,7 +633,7 @@ export default function HavenDashboard() {
                       </div>
 
                       <button
-                        onClick={handleAnalyzeImage}
+                        onClick={() => initiateAnalysis('scan')}
                         disabled={!selectedImage || isAnalyzing}
                         className={`w-full py-4 mt-6 rounded-2xl flex items-center justify-center gap-3 font-bold text-lg transition-all duration-300 shadow-lg ${!selectedImage || isAnalyzing
                           ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none'
@@ -751,13 +811,44 @@ export default function HavenDashboard() {
                       </div>
 
                       {/* Explanation */}
-                      <div className="bg-[#5A9C8D]/5 rounded-2xl p-6 border border-[#5A9C8D]/20 w-full">
+                      <div className="bg-[#5A9C8D]/5 rounded-2xl p-6 border border-[#5A9C8D]/20 w-full mb-6">
                         <h4 className="text-xs font-bold text-[#5A9C8D] uppercase tracking-widest mb-3 flex items-center gap-2">
                           <Info className="w-4 h-4" /> DSM Analysis & Rationale
                         </h4>
                         <p className="text-[#1E3A5F] text-[15px] font-medium leading-relaxed whitespace-pre-line">
                           {analysisResult.analysis.explanation}
                         </p>
+                      </div>
+                      
+                      {/* Reflection Pulse */}
+                      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm w-full">
+                        <h4 className="text-xs font-bold text-[#5A9C8D] uppercase tracking-widest mb-3 flex items-center gap-2">
+                          <Activity className="w-4 h-4" /> Reflection Pulse
+                        </h4>
+                        <p className="text-slate-500 text-sm mb-4 font-medium italic">"How did this behavior make you feel? What do you think about it?"</p>
+                        
+                        {analysisResult.user_reflection ? (
+                          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-[#1E3A5F] font-medium text-[15px] italic">
+                            "{analysisResult.user_reflection}"
+                          </div>
+                        ) : (
+                          <div className="flex gap-3">
+                            <input
+                              type="text"
+                              value={reflectionInput}
+                              onChange={(e) => setReflectionInput(e.target.value)}
+                              placeholder="Log your thoughts here..."
+                              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-[15px] font-medium text-[#1E3A5F] focus:outline-none focus:border-[#5A9C8D] transition-all"
+                            />
+                            <button
+                              onClick={handleSaveReflection}
+                              disabled={!reflectionInput.trim() || isSavingReflection}
+                              className="bg-[#5A9C8D] hover:bg-[#4A8577] text-white px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50 shadow-md"
+                            >
+                              {isSavingReflection ? <Loader2 className="w-5 h-5 animate-spin" /> : "Log"}
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       {/* Follow-Up Chat */}
@@ -828,24 +919,293 @@ export default function HavenDashboard() {
             </div>
           </div>
         )}
+
+        {/* ----- STS TAB ----- */}
+        {activeTab === 'sts' && (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="w-full max-w-md bg-white shadow-[0_20px_60px_rgba(90,156,141,0.15)] rounded-3xl border border-[#5A9C8D]/10 p-10 text-center space-y-8">
+              <div className="w-20 h-20 bg-[#5A9C8D]/10 rounded-full flex items-center justify-center mx-auto border border-[#5A9C8D]/20">
+                <Phone className="w-10 h-10 text-[#5A9C8D]" />
+              </div>
+              <h3 className="text-2xl font-black text-[#1E3A5F]">STS Transmission</h3>
+              <p className="text-slate-500 text-sm">Initiate a monitored call with speech-to-speech AI analysis active.</p>
+              <input
+                type="tel"
+                placeholder="+1 (555) 000-0000"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-center text-[#1E3A5F] font-bold text-lg focus:outline-none focus:border-[#5A9C8D] focus:ring-2 focus:ring-[#5A9C8D]/20"
+              />
+              <button
+                onClick={handleInitiateCall}
+                disabled={!phoneNumber.trim() || isCalling}
+                className="w-full py-4 bg-[#1E3A5F] hover:bg-[#0F223D] text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 shadow-lg"
+              >
+                {isCalling ? <Loader2 className="w-5 h-5 animate-spin" /> : <PhoneForwarded className="w-5 h-5" />}
+                {isCalling ? 'Connecting...' : 'Initiate Transmission'}
+              </button>
+              {callSid && (
+                <div className="bg-[#5A9C8D]/10 border border-[#5A9C8D]/20 rounded-xl p-4 text-sm text-[#5A9C8D] font-bold">
+                  Active Call: <span className="font-mono text-xs">{callSid}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ----- INSIGHTS TAB ----- */}
+        {activeTab === 'insights' && (
+          <div className="flex-1 overflow-y-auto custom-scrollbar w-full">
+            <div className="max-w-6xl mx-auto space-y-8 pb-12">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+                <h2 className="text-3xl font-extrabold text-[#1E3A5F] flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#5A9C8D]/10 flex items-center justify-center text-[#5A9C8D]">
+                    <BarChart3 className="w-6 h-6" />
+                  </div>
+                  Forensic Insights
+                </h2>
+                
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Filter by Vector:</span>
+                  <select 
+                    value={selectedContactFilter}
+                    onChange={(e) => setSelectedContactFilter(e.target.value)}
+                    className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-[#1E3A5F] focus:outline-none focus:border-[#5A9C8D] shadow-sm cursor-pointer"
+                  >
+                    <option value="All">All Contacts</option>
+                    {contacts.map(c => (
+                      <option key={c.name} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Time-Series Chart */}
+              <div className="bg-white shadow-[0_20px_60px_rgba(90,156,141,0.15)] rounded-3xl border border-[#5A9C8D]/10 p-8">
+                <h3 className="text-xs font-bold text-[#5A9C8D] uppercase tracking-widest mb-6 flex items-center gap-2">
+                  <Clock className="w-4 h-4" /> Risk Score Over Time
+                </h3>
+                {historicalData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={historicalData.map((d, i) => ({
+                      name: `Scan ${i + 1}`,
+                      score: d.analysis?.overall_risk_score || 0,
+                      contact: d.contact_name || 'Unknown',
+                    }))}>
+                      <defs>
+                        <linearGradient id="riskGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#5A9C8D" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#5A9C8D" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
+                      <YAxis domain={[0, 10]} stroke="#94a3b8" fontSize={12} />
+                      <Tooltip contentStyle={{ background: '#1E3A5F', border: 'none', borderRadius: '12px', color: 'white', fontSize: '13px' }} />
+                      <Area type="monotone" dataKey="score" stroke="#5A9C8D" strokeWidth={3} fill="url(#riskGradient)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center py-16 text-slate-400">
+                    <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                    <p className="font-bold">No data yet. Run a scan to populate the timeline.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Incident Groupings */}
+              <div className="bg-white shadow-[0_20px_60px_rgba(90,156,141,0.15)] rounded-3xl border border-[#5A9C8D]/10 p-8">
+                <h3 className="text-xs font-bold text-[#5A9C8D] uppercase tracking-widest mb-6 flex items-center gap-2">
+                  <Network className="w-4 h-4" /> Incident Tag Groupings
+                </h3>
+                {statsData?.tag_counts && Object.keys(statsData.tag_counts).length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {Object.entries(statsData.tag_counts).map(([tag, count]: [string, any]) => (
+                      <div key={tag} className="bg-slate-50 border border-slate-100 rounded-2xl p-5 flex flex-col items-center gap-2 hover:border-[#5A9C8D]/30 transition-all">
+                        <span className="text-2xl font-black text-[#1E3A5F]">{count}</span>
+                        <span className="text-xs font-bold text-[#5A9C8D] uppercase tracking-wider text-center">{tag}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-400 font-bold">No incident tags recorded yet.</div>
+                )}
+              </div>
+
+              {/* Actionable Support */}
+              <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-8">
+                <h3 className="text-xs font-bold text-red-600 uppercase tracking-widest mb-6 flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4" /> Crisis & Support Resources
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <a href="https://www.thehotline.org" target="_blank" rel="noopener noreferrer" className="bg-white border border-red-200 rounded-2xl p-6 hover:bg-red-50 hover:border-red-300 transition-all group">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Phone className="w-5 h-5 text-red-500" />
+                      <span className="font-extrabold text-[#1E3A5F] group-hover:text-red-600 transition-colors">National DV Hotline</span>
+                    </div>
+                    <p className="text-slate-500 text-sm">1-800-799-7233 • Available 24/7</p>
+                  </a>
+                  <a href="https://www.crisistextline.org" target="_blank" rel="noopener noreferrer" className="bg-white border border-red-200 rounded-2xl p-6 hover:bg-red-50 hover:border-red-300 transition-all group">
+                    <div className="flex items-center gap-3 mb-2">
+                      <MessageSquare className="w-5 h-5 text-red-500" />
+                      <span className="font-extrabold text-[#1E3A5F] group-hover:text-red-600 transition-colors">Crisis Text Line</span>
+                    </div>
+                    <p className="text-slate-500 text-sm">Text HOME to 741741</p>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ----- CONTACTS TAB ----- */}
+        {activeTab === 'contacts' && (
+          <div className="flex-1 overflow-y-auto custom-scrollbar w-full">
+            <div className="max-w-5xl mx-auto space-y-8 pb-12">
+              <div className="flex items-center justify-between">
+                <h2 className="text-3xl font-extrabold text-[#1E3A5F] flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#5A9C8D]/10 flex items-center justify-center text-[#5A9C8D]">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  Contact Vectors
+                </h2>
+              </div>
+              {contacts.length > 0 ? (
+                <div className="space-y-4">
+                  {contacts.map((contact: any) => (
+                    <div key={contact.name} className="bg-white shadow-[0_12px_40px_rgba(90,156,141,0.1)] rounded-2xl border border-[#5A9C8D]/10 p-6 flex flex-col md:flex-row items-center justify-between gap-4 hover:border-[#5A9C8D]/30 transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black text-white ${contact.highestRisk >= 8 ? 'bg-red-500' : contact.highestRisk >= 5 ? 'bg-amber-500' : 'bg-[#5A9C8D]'}`}>
+                          {contact.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-black text-[#1E3A5F]">{contact.name}</h4>
+                          <div className="flex items-center gap-2">
+                            <span className="bg-[#5A9C8D]/10 text-[#5A9C8D] border border-[#5A9C8D]/20 px-3 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-widest">
+                              {contact.relationship}
+                            </span>
+                            <span className="text-slate-400 text-[10px] font-medium">
+                              {contact.count} Incidents / Avg Risk: {contact.avgRisk}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Aggregate Peak</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className={`h-full ${getProgressBarColor(contact.highestRisk)}`} style={{ width: `${(contact.highestRisk / 10) * 100}%` }}></div>
+                            </div>
+                            <span className={`font-black text-xl ${contact.highestRisk >= 8 ? 'text-red-500' : contact.highestRisk >= 5 ? 'text-amber-500' : 'text-[#5A9C8D]'}`}>
+                              {contact.highestRisk.toFixed(0)}/10
+                            </span>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => { setSelectedContactFilter(contact.name); setActiveTab('insights'); }}
+                          className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-[#5A9C8D] transition-all"
+                          title="View Insights"
+                        >
+                          <BarChart3 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-400 text-center">
+                  <div className="w-20 h-20 bg-[#5A9C8D]/5 rounded-full flex items-center justify-center mb-6">
+                    <Users className="w-10 h-10 opacity-20" />
+                  </div>
+                  <h4 className="text-lg font-bold text-[#1E3A5F] mb-2">No Contact Vectors Isolated</h4>
+                  <p className="max-w-[280px] text-sm text-slate-400">Run a Deep Scan or Voice Ingestion to begin relationship mapping.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+
       {/* Global styles for custom scrollbar */}
       <style dangerouslySetInnerHTML={{
         __html: `
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 8px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-      }
+      .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     `}} />
+
+      {/* Contact Modal */}
+      <AnimatePresence>
+        {showContactModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl space-y-8"
+            >
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-[#5A9C8D]/10 rounded-2xl flex items-center justify-center mx-auto border border-[#5A9C8D]/30">
+                  <User className="w-8 h-8 text-[#5A9C8D]" />
+                </div>
+                <h3 className="text-2xl font-black text-[#1E3A5F]">Identify Contact</h3>
+                <p className="text-slate-400 text-sm">Categorize this forensic ingestion for the Longitudinal Tracker.</p>
+              </div>
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 ml-1 tracking-widest">Target Name</label>
+                  <input
+                    type="text"
+                    className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-[#1E3A5F] focus:outline-none focus:border-[#5A9C8D] focus:ring-2 focus:ring-[#5A9C8D]/20 font-bold"
+                    placeholder="John Doe"
+                    value={contactInfo.name}
+                    onChange={(e) => setContactInfo(prev => ({ ...prev, name: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 ml-1 tracking-widest">Relationship Vector</label>
+                  <select
+                    className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-sm text-[#1E3A5F] focus:outline-none focus:border-[#5A9C8D] focus:ring-2 focus:ring-[#5A9C8D]/20 font-bold appearance-none cursor-pointer"
+                    value={contactInfo.relationship}
+                    onChange={(e) => setContactInfo(prev => ({ ...prev, relationship: e.target.value }))}
+                  >
+                    <option value="Ex-partner">Ex-partner</option>
+                    <option value="Partner">Current Partner</option>
+                    <option value="Family">Family Member</option>
+                    <option value="Colleague">Co-worker / Boss</option>
+                    <option value="Friend">Friend / Peer</option>
+                    <option value="Other">External / Other</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => { setShowContactModal(false); setPendingAction(null); }}
+                  className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-bold transition-all text-sm uppercase tracking-widest"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={!contactInfo.name.trim()}
+                  onClick={() => {
+                    setShowContactModal(false);
+                    if (pendingAction?.type === 'scan') handleAnalyzeImage(contactInfo.name, contactInfo.relationship);
+                    if (pendingAction?.type === 'voice') handleAnalyzeAudio(pendingAction.data, contactInfo.name, contactInfo.relationship);
+                    setPendingAction(null);
+                  }}
+                  className="flex-1 py-4 bg-[#1E3A5F] hover:bg-[#0F223D] text-white rounded-2xl font-bold transition-all shadow-lg text-sm uppercase tracking-widest disabled:opacity-50"
+                >
+                  Confirm
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast */}
       <AnimatePresence>
         {toastMessage && (
           <motion.div
