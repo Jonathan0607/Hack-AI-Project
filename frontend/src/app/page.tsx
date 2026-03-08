@@ -249,18 +249,24 @@ export default function HavenDashboard() {
 
     try {
       const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      console.log(`DEBUG: Initiating call to ${phoneNumber} via ${BASE_URL}`);
       const res = await fetch(`${BASE_URL}/initiate-call?to_number=${encodeURIComponent(phoneNumber)}`, {
         method: 'POST',
       });
 
-      if (!res.ok) throw new Error("Failed to initiate call");
+      console.log(`DEBUG: Response status: ${res.status}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("DEBUG: Error data:", errorData);
+        throw new Error("Failed to initiate call");
+      }
 
       const data = await res.json();
+      console.log("DEBUG: Call initiated successfully, SID:", data.call_sid);
       setCallSid(data.call_sid);
     } catch (error) {
       console.error("Error initiating call:", error);
-      alert("Failed to initiate call. Check console for details.");
-    } finally {
+      alert("Call failed. Check console for details.");
       setIsCalling(false);
     }
   };

@@ -3,7 +3,7 @@ import json
 import asyncio
 import google.generativeai as genai
 from fastapi import FastAPI, HTTPException, UploadFile, File
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic_settings import BaseSettings
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -16,20 +16,19 @@ from twilio.rest import Client as TwilioClient
 from twilio.twiml.voice_response import VoiceResponse, Connect
 from fastapi import WebSocket, WebSocketDisconnect
 import base64
-import ngrok
 
 class Settings(BaseSettings):
-    mongodb_uri: str = "mongodb://localhost:27017"
-    db_name: str = "haven"
     gemini_api_key: str = ""
     elevenlabs_api_key: str = ""
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""
     twilio_phone_number: str = ""
     ngrok_authtoken: str = ""
+    vapi_key: str = ""
 
     class Config:
         env_file = "../.env"
+        extra = "ignore"
 
 settings = Settings()
 app = FastAPI(title="Project Haven")
@@ -41,6 +40,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def log_requests(request, call_next):
+    print(f"DEBUG: Incoming request: {request.method} {request.url}")
+    response = await call_next(request)
+    print(f"DEBUG: Response status: {response.status_code}")
+    return response
 
 # Configure Gemini with the provided API key
 genai.configure(api_key=settings.gemini_api_key)
@@ -122,47 +128,37 @@ class ChatRequest(BaseModel):
 @app.on_event("startup")
 async def startup_events():
     # Ngrok Tunnel initialization
-    app.state.public_url = None
-    app.state.frontend_url = None
+    app.state.public_url = "https://unevangelized-karolyn-workmanly.ngrok-free.dev"
+    app.state.frontend_url = "https://hanna-unidentified-basically.ngrok-free.dev"
     
     # Check for external Ngrok URL first (managed by CLI)
-    if os.path.exists("tunnel_url.txt"):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    tunnel_file = os.path.join(current_dir, "tunnel_url.txt")
+    frontend_file = os.path.join(current_dir, "frontend_url.txt")
+
+    print(f"DEBUG: Looking for tunnel files in: {current_dir}")
+
+    if os.path.exists(tunnel_file):
         try:
-            with open("tunnel_url.txt", "r") as f:
+            with open(tunnel_file, "r") as f:
                 app.state.public_url = f.read().strip()
-                print(f"Using external Ngrok backend URL: {app.state.public_url}")
+                print(f"DEBUG: Using Ngrok backend URL from file: {app.state.public_url}")
         except Exception as e:
-            print(f"Error reading external tunnel URL: {e}")
+            print(f"DEBUG: Error reading tunnel_url.txt: {e}")
 
-    if os.path.exists("frontend_url.txt"):
+    if os.path.exists(frontend_file):
         try:
-            with open("frontend_url.txt", "r") as f:
+            with open(frontend_file, "r") as f:
                 app.state.frontend_url = f.read().strip()
-                print(f"Using external Ngrok frontend URL: {app.state.frontend_url}")
+                print(f"DEBUG: Using Ngrok frontend URL from file: {app.state.frontend_url}")
         except Exception as e:
-            print(f"Error reading frontend tunnel URL: {e}")
+            print(f"DEBUG: Error reading frontend_url.txt: {e}")
 
-    # Database initialization
-    try:
-        print("Connecting to MongoDB...")
-        app.mongodb_client = AsyncIOMotorClient(settings.mongodb_uri)
-        app.mongodb = app.mongodb_client[settings.db_name]
-        # Verify connection (non-blocking ping)
-        # We don't await an operation here to avoid blocking startup if DB is down.
-    except Exception as e:
-        print(f"Failed to connect to MongoDB: {e}")
-        app.mongodb = None
+    pass
 
 @app.on_event("shutdown")
 async def shutdown_events():
-    if hasattr(app, 'mongodb_client'):
-        app.mongodb_client.close()
-    if hasattr(app.state, 'backend_listener') and app.state.backend_listener:
-        print("Closing backend ngrok listener...")
-        await ngrok.disconnect(app.state.backend_listener.url())
-    if hasattr(app.state, 'frontend_listener') and app.state.frontend_listener:
-        print("Closing frontend ngrok listener...")
-        await ngrok.disconnect(app.state.frontend_listener.url())
+    pass
 
 @app.get("/")
 async def root():
@@ -170,27 +166,11 @@ async def root():
 
 @app.get("/conversations")
 async def get_conversations():
-    cursor = app.mongodb.conversations.find().sort("risk_score", -1)
-    conversations = await cursor.to_list(length=100)
-    for conv in conversations:
-        conv["_id"] = str(conv["_id"])
-    return conversations
+    return []
 
 @app.get("/stream/{id}")
 async def stream_conversation(id: str):
-    async def event_generator():
-        conv = await app.mongodb.conversations.find_one({"thread_id": id})
-        if not conv:
-            yield "data: {\"error\": \"Not found\"}\n\n"
-            return
-        
-        for msg in conv.get("messages", []):
-            await asyncio.sleep(1)
-            yield f"data: {json.dumps(msg)}\n\n"
-        
-        yield "event: end\ndata: {}\n\n"
-
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    raise HTTPException(status_code=404, detail="Conversation storage is disabled")
 
 @app.post("/analyze-screenshot")
 async def analyze_screenshot(file: UploadFile = File(...)):
@@ -286,24 +266,35 @@ async def initiate_call(to_number: str):
             else:
                 to_number = f"+{to_number}"
 
-        client = TwilioClient(settings.twilio_account_sid, settings.twilio_auth_token)
+        print(f"Initiating Vapi call to {to_number}")
         
-        # Use public URL from Ngrok if available, else fallback to placeholder
-        public_url = app.state.public_url if app.state.public_url else "https://project-haven-backend.loca.lt"
-        
-        response = VoiceResponse()
-        connect = Connect()
-        connect.stream(url=f"wss://{public_url.split('//')[1]}/twilio-voice-stream")
-        response.append(connect)
-        
-        print(f"Initiating call to {to_number} from {settings.twilio_phone_number}")
-        
-        call = client.calls.create(
-            to=to_number,
-            from_=settings.twilio_phone_number,
-            twiml=str(response)
-        )
-        return {"call_sid": call.sid}
+        async with httpx.AsyncClient() as client:
+            headers = {
+                "Authorization": f"Bearer {settings.vapi_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "phoneNumberId": "1f160ff1-b07a-482a-bc05-ad145bc099c7",
+                "customer": {
+                    "number": to_number
+                }
+            }
+            response = await client.post(
+                "https://api.vapi.ai/call/phone", 
+                headers=headers, 
+                json=payload, 
+                timeout=30.0
+            )
+            
+            if response.status_code not in (200, 201):
+                error_msg = response.text
+                print(f"Vapi API Error: {error_msg}")
+                raise HTTPException(status_code=500, detail=f"Failed to initiate call via Vapi: {error_msg}")
+                
+            data = response.json()
+            print(f"DEBUG: Vapi Outbound call successful, Call ID: {data.get('id')}")
+            return {"call_sid": data.get("id")}
+            
     except Exception as e:
         error_msg = str(e)
         print(f"Error initiating call: {error_msg}")
