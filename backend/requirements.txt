@@ -7,3 +7,6 @@ python-multipart
 google-generativeai
 pillow
 elevenlabs
+twilio
+websockets
+ngrok
