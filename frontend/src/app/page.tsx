@@ -44,6 +44,7 @@ export default function HavenDashboard() {
 
   const [activeTab, setActiveTab] = useState<'live' | 'scan' | 'voice' | 'sts' | 'insights' | 'contacts'>('live');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any | null>(null);
 
   // Insights State
@@ -117,28 +118,31 @@ export default function HavenDashboard() {
     }
   }, [chatHistory]);
 
-  useEffect(() => {
+  const refreshData = () => {
     const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-    // Fetch live feed threads
-    fetch(`${BASE_URL}/conversations`)
+    // Fetch historical timeline data (oldest→newest for chart)
+    fetch(`${BASE_URL}/analyses`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
       .then(res => res.json())
-      .then(data => setConversations(Array.isArray(data) ? data : []))
-      .catch(err => console.error("Error fetching conversations:", err));
-
-    // Fetch historical timeline data
-    fetch(`${BASE_URL}/analyses`)
-      .then(res => res.json())
-      .then(data => setHistoricalData(Array.isArray(data) ? data.reverse() : [])) // Reverse for time series (oldest to newest)
+      .then(data => setHistoricalData(Array.isArray(data) ? [...data].reverse() : []))
       .catch(err => console.error("Error fetching historical data:", err));
 
     // Fetch aggregate statistics
-    fetch(`${BASE_URL}/stats`)
+    fetch(`${BASE_URL}/stats`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
       .then(res => res.json())
       .then(data => setStatsData(data))
       .catch(err => console.error("Error fetching stats:", err));
 
-  }, [activeTab]);
+    // Fetch live feed threads
+    fetch(`${BASE_URL}/conversations`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+      .then(res => res.json())
+      .then(data => setConversations(Array.isArray(data) ? data : []))
+      .catch(err => console.error("Error fetching conversations:", err));
+  };
+
+  // Load on mount and whenever the active tab changes
+  useEffect(() => { refreshData(); }, [activeTab]);
+
 
   useEffect(() => {
     if (endOfMessagesRef.current) {
@@ -277,8 +281,11 @@ export default function HavenDashboard() {
 
   const handleAnalyzeAudio = async (audioBlob: Blob | File, cName?: string, cRel?: string) => {
     setIsAnalyzing(true);
+    setAudioError(null);
+    // Determine filename — use original if uploaded file, fallback to webm for recorded blobs
+    const fileName = (audioBlob instanceof File && audioBlob.name) ? audioBlob.name : 'audio.webm';
     const formData = new FormData();
-    formData.append('file', audioBlob, 'audio.webm');
+    formData.append('file', audioBlob, fileName);
     formData.append('contact_name', cName || contactInfo.name || "Unknown");
     formData.append('relationship_type', cRel || contactInfo.relationship || "Unknown");
 
@@ -289,12 +296,16 @@ export default function HavenDashboard() {
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Failed to transcribe and analyze audio");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+        throw new Error(err.detail || 'Failed to analyze audio');
+      }
 
       const data = await res.json();
       setAnalysisResult(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error analyzing audio:", error);
+      setAudioError(error.message || 'Analysis failed. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -620,24 +631,43 @@ export default function HavenDashboard() {
                   <div className="w-full max-w-md bg-[#1E3A5F]/40 border border-[#2A4B6E] rounded-3xl p-10 text-center space-y-8">
                     <div className="relative mx-auto w-32 h-32">
                       {isRecording && <span className="absolute inset-0 rounded-full bg-red-500/20 animate-ping"></span>}
+                      {isAnalyzing && <span className="absolute inset-0 rounded-full bg-[#5A9C8D]/20 animate-ping"></span>}
                       <button
                         onClick={isRecording ? stopRecording : startRecording}
-                        className={`w-full h-full rounded-full flex items-center justify-center shadow-2xl transition-all ${isRecording ? 'bg-red-500 scale-110' : 'bg-[#5A9C8D] hover:scale-105'
+                        disabled={isAnalyzing}
+                        className={`w-full h-full rounded-full flex items-center justify-center shadow-2xl transition-all disabled:opacity-50 ${isRecording ? 'bg-red-500 scale-110' : 'bg-[#5A9C8D] hover:scale-105'
                           }`}
                       >
-                        {isRecording ? <Square className="w-8 h-8 text-white" /> : <Mic className="w-10 h-10 text-white" />}
+                        {isAnalyzing
+                          ? <Loader2 className="w-10 h-10 text-white animate-spin" />
+                          : isRecording
+                            ? <Square className="w-8 h-8 text-white" />
+                            : <Mic className="w-10 h-10 text-white" />}
                       </button>
                     </div>
                     <div>
-                      <h4 className="text-xl font-bold">{isRecording ? "Recording Audio..." : "Voice Ingestion Pulse"}</h4>
-                      <p className="text-sm text-slate-400 mt-2">Speak into the sensor for immediate forensic transcription.</p>
+                      <h4 className="text-xl font-bold">
+                        {isAnalyzing ? "Analyzing Audio..." : isRecording ? "Recording Audio..." : "Voice Ingestion Pulse"}
+                      </h4>
+                      <p className="text-sm text-slate-400 mt-2">
+                        {isAnalyzing
+                          ? "Uploading to forensic analysis engine. This may take 10-20 seconds..."
+                          : "Speak into the sensor for immediate forensic transcription."}
+                      </p>
                     </div>
+                    {audioError && (
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-xs text-red-400 text-left">
+                        <span className="font-bold uppercase tracking-wider block mb-1">Analysis Error</span>
+                        {audioError}
+                      </div>
+                    )}
                     <input type="file" id="audioUpload" className="hidden" accept="audio/*" onChange={handleAudioFileSelect} />
                     <button
+                      disabled={isAnalyzing}
                       onClick={() => document.getElementById('audioUpload')?.click()}
-                      className="text-xs font-bold text-[#5A9C8D] hover:underline uppercase tracking-widest"
+                      className="text-xs font-bold text-[#5A9C8D] hover:underline uppercase tracking-widest disabled:opacity-40"
                     >
-                      Or upload recording.wav
+                      Or upload audio file
                     </button>
                   </div>
                 </div>
@@ -682,6 +712,50 @@ export default function HavenDashboard() {
                         <p className="text-sm text-slate-400">Time-series tracking and psychological mapping of ingested logs.</p>
                       </div>
                     </div>
+                    <button
+                      onClick={refreshData}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] border border-[#2A4B6E] hover:border-[#5A9C8D]/50 rounded-xl text-xs font-bold text-slate-300 uppercase tracking-widest transition-all"
+                    >
+                      <Loader2 className="w-3.5 h-3.5" /> Refresh
+                    </button>
+                  </div>
+
+                  {/* Live summary stat cards */}
+                  <div className="grid grid-cols-3 gap-4">
+                    {[
+                      {
+                        label: "Total Scans",
+                        value: statsData?.total_analyses ?? historicalData.length,
+                        sub: "Forensic ingestions logged",
+                        color: "text-[#5A9C8D]",
+                      },
+                      {
+                        label: "Avg Risk Score",
+                        value: statsData?.avg_risk_score != null
+                          ? `${statsData.avg_risk_score.toFixed(1)}/10`
+                          : historicalData.length > 0
+                            ? `${(historicalData.reduce((s: number, d: any) => s + (d.analysis?.overall_risk_score ?? 0), 0) / historicalData.length).toFixed(1)}/10`
+                            : "—",
+                        sub: "Across all ingestions",
+                        color: statsData?.avg_risk_score >= 7 ? "text-red-400" : statsData?.avg_risk_score >= 4 ? "text-amber-400" : "text-emerald-400",
+                      },
+                      {
+                        label: "Top Threat Tag",
+                        value: statsData?.tag_counts
+                          ? Object.entries(statsData.tag_counts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] ?? "None"
+                          : "—",
+                        sub: statsData?.tag_counts
+                          ? `${Object.entries(statsData.tag_counts).sort((a: any, b: any) => b[1] - a[1])[0]?.[1] ?? 0} occurrences`
+                          : "No data yet",
+                        color: "text-amber-400",
+                      },
+                    ].map((stat, i) => (
+                      <div key={i} className="bg-[#1E3A5F]/30 border border-[#2A4B6E] rounded-2xl p-5 flex flex-col gap-1">
+                        <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">{stat.label}</span>
+                        <span className={`text-3xl font-black ${stat.color} leading-none`}>{stat.value}</span>
+                        <span className="text-xs text-slate-500">{stat.sub}</span>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8">
@@ -693,9 +767,10 @@ export default function HavenDashboard() {
                       <div className="h-[300px] w-full">
                         {historicalData.length > 0 ? (
                           <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={historicalData.map(d => ({
+                            <AreaChart data={historicalData.map((d: any) => ({
                               time: new Date(d.timestamp).toLocaleDateString() + ' ' + new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                               score: d.analysis.overall_risk_score,
+                              contact: d.contact_name || 'Unknown',
                               tags: d.analysis.tags?.join(', ') || 'N/A'
                             }))}>
                               <defs>
@@ -711,6 +786,10 @@ export default function HavenDashboard() {
                                 contentStyle={{ backgroundColor: '#0F223D', borderColor: '#2A4B6E', borderRadius: '12px' }}
                                 itemStyle={{ color: '#5A9C8D', fontWeight: 'bold' }}
                                 labelStyle={{ color: '#F9F8F4', marginBottom: '8px' }}
+                                formatter={(val: any, _name: any, props: any) => [
+                                  `${val}/10`,
+                                  `Risk — ${props.payload.contact}`
+                                ]}
                               />
                               <Area type="monotone" dataKey="score" stroke="#5A9C8D" strokeWidth={3} fillOpacity={1} fill="url(#colorRisk)" />
                             </AreaChart>
@@ -721,21 +800,21 @@ export default function HavenDashboard() {
                       </div>
                     </div>
 
-                    {/* Incident Tags Pie/Bar Matrix */}
+                    {/* Incident Tags Bar Matrix */}
                     <div className="bg-[#1E3A5F]/20 border border-[#2A4B6E] p-6 rounded-2xl flex flex-col">
                       <div className="flex items-center gap-2 mb-6 text-sm font-bold text-slate-300 uppercase tracking-widest">
                         <Network className="w-4 h-4 text-[#5A9C8D]" /> Identified Incident Groupings
                       </div>
                       <div className="flex-1 flex flex-col justify-center">
-                        {statsData && statsData.tag_counts ? (
+                        {statsData && statsData.tag_counts && Object.keys(statsData.tag_counts).length > 0 ? (
                           <div className="space-y-4 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
                             {Object.entries(statsData.tag_counts).sort((a: any, b: any) => b[1] - a[1]).map(([tag, count]: any) => (
                               <div key={tag} className="flex items-center justify-between">
                                 <span className="text-sm text-slate-200 capitalize w-1/3 truncate text-ellipsis">{tag}</span>
                                 <div className="flex-1 mx-4 h-2 bg-[#0F223D] rounded-full overflow-hidden">
                                   <div
-                                    className={`h-full ${count >= 5 ? 'bg-red-500' : count >= 3 ? 'bg-amber-500' : 'bg-emerald-500'}`}
-                                    style={{ width: `${Math.min((count / 10) * 100, 100)}%` }}
+                                    className={`h-full transition-all duration-500 ${count >= 5 ? 'bg-red-500' : count >= 3 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                                    style={{ width: `${Math.min((count / (statsData.total_analyses || 1)) * 100, 100)}%` }}
                                   ></div>
                                 </div>
                                 <span className="text-xs font-mono bg-[#1E3A5F] px-2 py-1 rounded text-[#5A9C8D] border border-[#2A4B6E] w-10 text-center">{count}</span>
@@ -748,39 +827,27 @@ export default function HavenDashboard() {
                       </div>
                     </div>
 
-                    {/* Contact Warning Board */}
+                    {/* High-Risk Contact Vectors */}
                     <div className="bg-[#1E3A5F]/20 border border-[#2A4B6E] p-6 rounded-2xl flex flex-col">
                       <div className="flex items-center gap-2 mb-6 text-sm font-bold text-slate-300 uppercase tracking-widest">
                         <Users className="w-4 h-4 text-[#5A9C8D]" /> High-Risk Contact Vectors
                       </div>
                       <div className="flex-1 overflow-y-auto max-h-[250px] custom-scrollbar space-y-3 pr-2">
-                        {historicalData.length > 0 ? (
-                          // Group historical data by partner name directly in the view
-                          Object.entries(
-                            historicalData.reduce((acc, curr) => {
-                              let name = curr.contact_name || curr.analysis?.partner_name || "Unknown";
-                              if (!acc[name]) acc[name] = { totalScore: 0, count: 0, highestScore: 0 };
-                              acc[name].totalScore += curr.analysis.overall_risk_score;
-                              acc[name].count += 1;
-                              acc[name].highestScore = Math.max(acc[name].highestScore, curr.analysis.overall_risk_score);
-                              return acc;
-                            }, {})
-                          ).sort((a: any, b: any) => b[1].highestScore - a[1].highestScore).map(([name, data]: any) => {
-                            const avg = data.totalScore / data.count;
+                        {contactList.length > 0 ? (
+                          contactList.map((contact: any) => {
+                            const avg = contact.totalScore / contact.count;
                             return (
-                              <div key={name} className="flex justify-between items-center bg-[#0F223D]/60 p-3 rounded-xl border border-[#2A4B6E]">
+                              <div key={contact.name} className="flex justify-between items-center bg-[#0F223D]/60 p-3 rounded-xl border border-[#2A4B6E]">
                                 <div className="flex flex-col">
-                                  <span className="font-bold text-white uppercase tracking-wide text-sm">{name}</span>
-                                  <span className="text-[10px] text-slate-400 font-mono">Total Occurrences: {data.count}</span>
+                                  <span className="font-bold text-white uppercase tracking-wide text-sm">{contact.name}</span>
+                                  <span className="text-[10px] text-slate-400 font-mono">{contact.count} incident{contact.count !== 1 ? 's' : ''} · avg {avg.toFixed(1)}/10</span>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                  <div className="flex flex-col items-end">
-                                    <span className="text-[10px] uppercase font-bold text-slate-500">Max Threat</span>
-                                    <span className={`font-black ${avg >= 7 ? 'text-red-500' : avg >= 4 ? 'text-amber-500' : 'text-emerald-500'}`}>{data.highestScore}/10</span>
-                                  </div>
+                                <div className="flex flex-col items-end">
+                                  <span className="text-[10px] uppercase font-bold text-slate-500">Max</span>
+                                  <span className={`font-black ${contact.highestScore >= 7 ? 'text-red-500' : contact.highestScore >= 4 ? 'text-amber-500' : 'text-emerald-500'}`}>{contact.highestScore}/10</span>
                                 </div>
                               </div>
-                            )
+                            );
                           })
                         ) : (
                           <div className="text-center text-slate-500 italic text-sm mt-10">No contact vectors mapped.</div>
@@ -788,7 +855,7 @@ export default function HavenDashboard() {
                       </div>
                     </div>
 
-                    {/* Psychological & Support Context */}
+                    {/* Safety Support */}
                     <div className="bg-red-500/10 border border-red-500/30 p-6 rounded-2xl md:col-span-2 flex flex-col md:flex-row gap-6 items-center">
                       <div className="flex-1 space-y-3">
                         <h4 className="text-xl font-bold flex items-center gap-2 text-red-500"><HelpCircle className="w-5 h-5" /> Safety & Actionable Support</h4>
@@ -801,67 +868,90 @@ export default function HavenDashboard() {
                         <a href="https://www.crisistextline.org/" target="_blank" rel="noopener noreferrer" className="bg-[#1E3A5F] border border-red-500/50 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-xl text-center text-sm shadow-xl hover:-translate-y-1 transition-all">Text HOME to 741741</a>
                       </div>
                     </div>
-
                   </div>
                 </div>
               )}
 
+
               {activeTab === 'contacts' && (
                 <div className="flex-1 flex flex-col">
                   <div className="flex justify-between items-center mb-6 border-b border-[#2A4B6E] pb-4">
-                    <h3 className="font-bold flex items-center gap-2">
-                      <Users className="w-5 h-5 text-[#5A9C8D]" />
-                      Contact Vectors
-                    </h3>
+                    <div>
+                      <h3 className="font-bold flex items-center gap-2 text-lg">
+                        <Users className="w-5 h-5 text-[#5A9C8D]" /> Contact Vectors
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5">{contactList.length} contact{contactList.length !== 1 ? 's' : ''} tracked · {historicalData.length} total incident{historicalData.length !== 1 ? 's' : ''}</p>
+                    </div>
                     <button
-                      onClick={() => setShowContactModal(true)}
-                      className="px-4 py-2 bg-[#5A9C8D] hover:bg-[#4A8577] text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all"
+                      onClick={refreshData}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] border border-[#2A4B6E] hover:border-[#5A9C8D]/50 rounded-xl text-xs font-bold text-slate-300 uppercase tracking-widest transition-all"
                     >
-                      <UserPlus className="w-4 h-4" /> Add New Contact
+                      <Loader2 className="w-3.5 h-3.5" /> Refresh
                     </button>
                   </div>
-                  <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
+                  <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-5">
                     {contactList.length > 0 ? (
-                      contactList.map((contact, index) => (
-                        <div key={index} className="bg-[#1E3A5F]/30 border border-[#2A4B6E] p-8 rounded-[2rem] flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:border-[#5A9C8D]/40 transition-all group">
-                          <div className="flex items-center gap-5">
-                            <div className="w-16 h-16 bg-[#0F223D] rounded-2xl flex items-center justify-center border border-[#2A4B6E] group-hover:border-[#5A9C8D]/20 transition-all">
-                              <User className="w-8 h-8 text-[#5A9C8D]" />
-                            </div>
-                            <div className="space-y-1">
-                              <h4 className="text-xl font-black text-white">{contact.name}</h4>
-                              <div className="flex items-center gap-2">
-                                <span className="bg-[#5A9C8D]/10 text-[#5A9C8D] border border-[#5A9C8D]/20 px-3 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-widest leading-none">
-                                  {contact.relationship}
-                                </span>
-                                <span className="text-slate-500 text-[10px] font-medium tracking-tight">
-                                  {contact.count} Incidents Logged
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-8 w-full md:w-auto">
-                            <div className="flex flex-col items-end gap-1">
-                              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Aggregate Risk</span>
-                              <div className="flex items-center gap-2">
-                                <div className="w-24 h-1.5 bg-[#0F223D] rounded-full overflow-hidden">
-                                  <div
-                                    className={`h-full ${getProgressBarColor(contact.highestScore)}`}
-                                    style={{ width: `${(contact.highestScore / 10) * 100}%` }}
-                                  ></div>
+                      contactList.map((contact: any, index: number) => {
+                        const avgRisk = contact.totalScore / contact.count;
+                        // Get the 3 most recent incidents for this contact
+                        const recentIncidents = historicalData
+                          .filter((d: any) => (d.contact_name || d.analysis?.partner_name || 'Unknown') === contact.name)
+                          .slice(-3)
+                          .reverse();
+                        return (
+                          <div key={index} className="bg-[#1E3A5F]/30 border border-[#2A4B6E] p-6 rounded-[2rem] hover:border-[#5A9C8D]/40 transition-all group">
+                            {/* Header row */}
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                              <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-[#0F223D] rounded-2xl flex items-center justify-center border border-[#2A4B6E] group-hover:border-[#5A9C8D]/20 transition-all shrink-0">
+                                  <User className="w-7 h-7 text-[#5A9C8D]" />
                                 </div>
-                                <span className={`font-black tracking-tighter text-xl ${getRiskColor(contact.highestScore).split(' ')[0]}`}>
-                                  {contact.highestScore.toFixed(0)}/10
-                                </span>
+                                <div className="space-y-1">
+                                  <h4 className="text-xl font-black text-white">{contact.name}</h4>
+                                  <div className="flex items-center gap-2">
+                                    <span className="bg-[#5A9C8D]/10 text-[#5A9C8D] border border-[#5A9C8D]/20 px-3 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-widest">{contact.relationship}</span>
+                                    <span className="text-slate-500 text-[10px]">{contact.count} incident{contact.count !== 1 ? 's' : ''}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              {/* Risk metrics */}
+                              <div className="flex gap-6 items-center">
+                                <div className="flex flex-col items-center">
+                                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">Avg Risk</span>
+                                  <span className={`text-2xl font-black ${getRiskColor(avgRisk).split(' ')[0]}`}>{avgRisk.toFixed(1)}</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">Peak Risk</span>
+                                  <span className={`text-2xl font-black ${getRiskColor(contact.highestScore).split(' ')[0]}`}>{contact.highestScore}/10</span>
+                                </div>
+                                <div className="w-28">
+                                  <div className="h-2 bg-[#0F223D] rounded-full overflow-hidden">
+                                    <div className={`h-full transition-all ${getProgressBarColor(contact.highestScore)}`} style={{ width: `${(contact.highestScore / 10) * 100}%` }} />
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                            <button className="p-4 bg-[#0F223D] border border-[#2A4B6E] rounded-2xl hover:bg-[#2A4B6E] transition-all group-hover:scale-105">
-                              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-white" />
-                            </button>
+                            {/* Recent incidents */}
+                            {recentIncidents.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-[#2A4B6E]/60 space-y-1.5">
+                                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Recent Incidents</span>
+                                {recentIncidents.map((inc: any, i: number) => (
+                                  <div key={i} className="flex items-center justify-between text-xs bg-[#0F223D]/60 rounded-lg px-3 py-2">
+                                    <span className="text-slate-400 font-mono">{new Date(inc.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                    <div className="flex gap-1 flex-wrap justify-end">
+                                      {(inc.analysis?.tags || []).slice(0, 3).map((tag: string) => (
+                                        <span key={tag} className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold">{tag}</span>
+                                      ))}
+                                      {(!inc.analysis?.tags || inc.analysis.tags.length === 0) && <span className="text-slate-600 text-[10px]">No tags</span>}
+                                    </div>
+                                    <span className={`font-black text-sm ml-3 ${getRiskColor(inc.analysis?.overall_risk_score ?? 0).split(' ')[0]}`}>{inc.analysis?.overall_risk_score ?? 0}/10</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))
+                        );
+                      })
                     ) : (
                       <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 text-center animate-in fade-in duration-500">
                         <div className="w-20 h-20 bg-[#1E3A5F]/20 rounded-full flex items-center justify-center mb-6">

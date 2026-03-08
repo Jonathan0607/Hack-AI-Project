@@ -94,6 +94,36 @@ analysis_model = genai.GenerativeModel(
   safety_settings=safety_settings
 )
 
+SYSTEM_PROMPT_STS = """
+You are a high-fidelity Forensic AI agent for Project Haven. Your mission is to assist 
+users who may be in vulnerable or dangerous domestic situations. 
+
+1. Be calm, professional, and empathetic.
+2. If the user presents a situation, listen actively and provide forensic-level analysis 
+   of any communication patterns discussed (e.g., gaslighting, toxicity, control).
+3. If the user is in immediate danger, prioritize safety and advise them to seek shelter or contact emergency services.
+4. Keep the conversation focused on safety, validation, and forensic evidence gathering.
+"""
+
+SYSTEM_PROMPT_LIVE_STREAM = """
+You are a highly emotionally intelligent and human-like AI companion helping someone navigate a difficult conversation.
+Analyze this new message in the context of their previous experiences with the contact (provided below).
+
+{past_history}
+
+Focus on a general understanding of the situation and the underlying emotional dynamics. 
+DO NOT use complicated medical words, DSM diagnoses, or clinical jargon (like "borderline", "narcissistic", etc.).
+Keep it simple, conversational, and focused on safety, boundary setting, and recognizing toxic patterns (like guilt-tripping or manipulation) in plain language.
+
+If the contact is escalating or pushing boundaries based on their history, point it out gently but clearly.
+
+Output your analysis in JSON format with exactly these fields:
+- `signal_detected`: boolean (true if there is manipulation, hostility, or boundary crossing)
+- `z_score`: float (0.0 to 10.0 risk score, where 10 is highest danger)
+- `explanation`: string (a human-like, non-clinical explanation of what's happening and why it might be concerning based on their history)
+- `tags`: list of strings (e.g., ["Guilt Trip", "Pushing Boundaries", "Gaslighting"])
+"""
+
 # Configure ElevenLabs with the provided API key
 elevenlabs_client = ElevenLabs(api_key=settings.elevenlabs_api_key)
 
@@ -199,7 +229,22 @@ async def root():
 
 @app.get("/conversations")
 async def get_conversations():
-    return []
+    return [
+        {
+            "_id": "sim-live-mark",
+            "thread_id": "Mark-SMS-Live",
+            "type": "SMS",
+            "risk_score": 0.85,
+            "contact_name": "Mark"
+        },
+        {
+            "_id": "sim-live-david",
+            "thread_id": "David-Signal-Live",
+            "type": "Signal",
+            "risk_score": 0.95,
+            "contact_name": "David"
+        }
+    ]
 
 @app.get("/analyses")
 async def get_analyses(contact_name: Optional[str] = None):
@@ -304,7 +349,80 @@ async def get_contacts():
 
 @app.get("/stream/{id}")
 async def stream_conversation(id: str):
-    raise HTTPException(status_code=404, detail="Conversation storage is disabled")
+    contact_mapping = {
+        "Mark-SMS-Live": "Mark",
+        "David-Signal-Live": "David"
+    }
+    contact_name = contact_mapping.get(id, "Unknown")
+    
+    # fetch past context
+    db = get_db()
+    past_history_text = "No previous context available."
+    if db is not None and contact_name != "Unknown":
+        cursor = db.analyses.find({"contact_name": contact_name}).sort("timestamp", -1).limit(5)
+        past_docs = await cursor.to_list(length=5)
+        if past_docs:
+            past_history_text = "Previous Interactions Context:\n"
+            for doc in past_docs:
+                risk = doc.get("analysis", {}).get("overall_risk_score", 0)
+                tags = doc.get("analysis", {}).get("tags", [])
+                past_history_text += f"- A past interaction was flagged with risk {risk}/10 and tags: {', '.join(tags)}.\n"
+
+    prompt_context = SYSTEM_PROMPT_LIVE_STREAM.replace("{past_history}", past_history_text)
+
+    async def event_generator():
+        # Simulated live messages depending on contact
+        if contact_name == "Mark":
+            messages = [
+                {"sender": "partner", "text": "Hey, why aren't you answering me? I saw you read my message."},
+                {"sender": "user", "text": "I'm busy right now, I need some space."},
+                {"sender": "partner", "text": "Space? After everything I've done for you? You always do this to me."},
+                {"sender": "partner", "text": "If you don't call me right now, I'm coming over."},
+            ]
+        elif contact_name == "David":
+            messages = [
+                {"sender": "partner", "text": "I know where you live now."},
+                {"sender": "partner", "text": "You can't hide from me."},
+            ]
+        else:
+            messages = [
+                {"sender": "partner", "text": "Hello, are you there?"}
+            ]
+
+        for msg in messages:
+            await asyncio.sleep(2.5)  # Delay between messages
+            
+            # Call Gemini
+            prompt = f"Analyze this newly received message from {msg['sender']}: '{msg['text']}'"
+            try:
+                loop = asyncio.get_event_loop()
+                response = await loop.run_in_executor(
+                    None, 
+                    lambda: analysis_model.generate_content([prompt_context, prompt])
+                )
+                text_content = response.text
+                json_match = re.search(r'\{.*\}', text_content, re.DOTALL)
+                clean_json = json_match.group(0) if json_match else text_content
+                analysis_result = json.loads(clean_json)
+                
+                sse_data = {
+                    "sender": msg["sender"],
+                    "text": msg["text"],
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                    "signal_detected": analysis_result.get("signal_detected", False),
+                    "z_score": analysis_result.get("z_score", 0.0),
+                    "explanation": analysis_result.get("explanation", ""),
+                    "tags": analysis_result.get("tags", [])
+                }
+                yield f"data: {json.dumps(sse_data)}\n\n"
+            except Exception as e:
+                logger.error(f"Error in stream for {contact_name}: {e}")
+                yield f"data: {json.dumps({'sender': msg['sender'], 'text': msg['text'], 'timestamp': datetime.utcnow().isoformat() + 'Z', 'signal_detected': False, 'z_score': 0.0})}\n\n"
+
+        await asyncio.sleep(1)
+        yield f"data: {json.dumps({'sender': 'system', 'text': 'Stream disconnected.', 'timestamp': datetime.utcnow().isoformat() + 'Z', 'signal_detected': False, 'z_score': 0})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.post("/analyze-screenshot")
 async def analyze_screenshot(
@@ -344,25 +462,28 @@ async def analyze_screenshot(
         
         db = get_db()
         if db is not None:
-            analysis_data = result.get("analysis", {})
-            # Ensure required fields exist
-            for field in ["toxicity_score", "control_score", "gaslighting_score", "overall_risk_score"]:
-                if field not in analysis_data: analysis_data[field] = 0
-            if "explanation" not in analysis_data: analysis_data["explanation"] = "No explanation provided."
-            if "tags" not in analysis_data: analysis_data["tags"] = []
+            try:
+                analysis_data = result.get("analysis", {})
+                # Ensure required fields exist
+                for field in ["toxicity_score", "control_score", "gaslighting_score", "overall_risk_score"]:
+                    if field not in analysis_data: analysis_data[field] = 0
+                if "explanation" not in analysis_data: analysis_data["explanation"] = "No explanation provided."
+                if "tags" not in analysis_data: analysis_data["tags"] = []
 
-            analysis_doc = AnalysisEntry(
-                source="screenshot",
-                extracted_text=result.get("extracted_text", []),
-                analysis=analysis_data,
-                contact_name=contact_name if (contact_name and contact_name != "Unknown") else analysis_data.get("partner_name", "Unknown"),
-                relationship_type=relationship_type,
-                tags=analysis_data.get("tags", [])
-            )
-            inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
-            result["_id"] = str(inserted_result.inserted_id)
-            logger.info(f"DEBUG: Screenshot analysis saved with ID: {result['_id']}")
-            
+                analysis_doc = AnalysisEntry(
+                    source="screenshot",
+                    extracted_text=result.get("extracted_text", []),
+                    analysis=analysis_data,
+                    contact_name=contact_name if (contact_name and contact_name != "Unknown") else analysis_data.get("partner_name", "Unknown"),
+                    relationship_type=relationship_type,
+                    tags=analysis_data.get("tags", [])
+                )
+                inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+                result["_id"] = str(inserted_result.inserted_id)
+                logger.info(f"DEBUG: Screenshot analysis saved with ID: {result['_id']}")
+            except Exception as db_err:
+                logger.warning(f"WARNING: Could not save to MongoDB (analysis still returned): {db_err}")
+
         return result
     except HTTPException:
         raise
@@ -376,79 +497,129 @@ async def transcribe_audio(
     contact_name: Optional[str] = Form("Unknown"),
     relationship_type: Optional[str] = Form("Unknown")
 ):
+    tmp_path = None
     try:
-        # Transcribe audio using ElevenLabs
         contents = await file.read()
-        audio_stream = io.BytesIO(contents)
-        audio_stream.name = "audio.webm" # Required for correct MIME type detection in ElevenLabs SDK
+        logger.info(f"DEBUG: Received audio for contact: {contact_name}, size: {len(contents)} bytes")
 
-        logger.info(f"DEBUG: Transcribing audio for contact: {contact_name}")
-        transcription_result = elevenlabs_client.speech_to_text.convert(
-             file=audio_stream,
-             model_id="scribe_v1"
+        # Detect MIME type from filename
+        fname = (file.filename or "audio.webm").lower()
+        if fname.endswith(".mp3"):
+            mime_type = "audio/mp3"
+        elif fname.endswith(".mp4"):
+            mime_type = "audio/mp4"
+        elif fname.endswith(".wav"):
+            mime_type = "audio/wav"
+        elif fname.endswith(".ogg"):
+            mime_type = "audio/ogg"
+        elif fname.endswith(".flac"):
+            mime_type = "audio/flac"
+        else:
+            mime_type = "audio/webm"
+
+        # Write to temp file (non-blocking, fast)
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=f".{mime_type.split('/')[-1]}", delete=False) as tmp:
+            tmp.write(bytes(contents))
+            tmp_path = tmp.name
+
+        loop = asyncio.get_event_loop()
+
+        # Upload audio to Gemini File API in a thread (blocking SDK call)
+        logger.info(f"DEBUG: Uploading audio to Gemini File API ({mime_type})...")
+        audio_file = await loop.run_in_executor(
+            None, lambda: genai.upload_file(path=tmp_path, mime_type=mime_type)
         )
-        
-        transcript = transcription_result.text
-        logger.info(f"DEBUG: Transcribed text: {transcript[:100]}...")
-        
-        # Analyze transcript using Gemini
-        full_prompt = f"{SYSTEM_PROMPT_AUDIO}\n\nTranscript:\n{transcript}"
-        response = analysis_model.generate_content(full_prompt)
-        
+        logger.info(f"DEBUG: Gemini file uploaded: {audio_file.name}")
+
+        # Poll until file is ACTIVE — use asyncio.sleep to not block event loop
+        for _ in range(15):
+            audio_file = await loop.run_in_executor(
+                None, lambda: genai.get_file(audio_file.name)
+            )
+            if audio_file.state.name == "ACTIVE":
+                break
+            await asyncio.sleep(1)
+
+        # Ask Gemini to transcribe + analyze in one shot (blocking SDK call → thread)
+        COMBINED_PROMPT = f"""{SYSTEM_PROMPT_AUDIO}
+
+The audio file has been provided directly. Please first transcribe exactly what was said, then analyze it as instructed.
+
+In the "extracted_text" field, put the full verbatim transcript as a single entry with sender "speaker".
+"""
+        logger.info("DEBUG: Sending audio to Gemini for transcription + analysis...")
+        response = await loop.run_in_executor(
+            None, lambda: analysis_model.generate_content([COMBINED_PROMPT, audio_file])
+        )
+
+        # Cleanup uploaded file (fire-and-forget, don't block on it)
+        async def _delete_file():
+            try:
+                await loop.run_in_executor(None, lambda: genai.delete_file(audio_file.name))
+            except Exception:
+                pass
+        asyncio.create_task(_delete_file())
+
         # Check if response was blocked
         if not response.candidates or not response.candidates[0].content.parts:
-            logger.error(f"ERROR: Gemini response (audio) blocked. Finish reason: {response.candidates[0].finish_reason if response.candidates else 'Unknown'}")
-            raise HTTPException(status_code=500, detail=f"Analysis blocked by safety filters. Reason: {response.candidates[0].finish_reason if response.candidates else 'Unknown'}")
+            logger.error(f"ERROR: Gemini audio response blocked. Finish reason: {response.candidates[0].finish_reason if response.candidates else 'Unknown'}")
+            raise HTTPException(status_code=500, detail="Analysis blocked by safety filters.")
+
+        text_content = response.text
+        logger.info(f"DEBUG: Gemini audio response length: {len(text_content)}")
 
         # Robust JSON parsing
-        text_content = response.text
         json_match = re.search(r'\{.*\}', text_content, re.DOTALL)
-        if json_match:
-            clean_json = json_match.group(0)
-        else:
-            clean_json = text_content
-            
+        clean_json = json_match.group(0) if json_match else text_content
+
         try:
             result = json.loads(clean_json)
         except json.JSONDecodeError as je:
-            logger.error(f"ERROR decoding JSON (audio) from Gemini: {je}. Raw: {text_content[:200]}")
-            raise HTTPException(status_code=500, detail="Failed to parse analysis metadata.")
-        
-        # Explicitly set the extracted text to match the transcript just in case Gemini gets confused
-        result["extracted_text"] = [
-            {
-               "sender": "speaker",
-               "text": transcript
-            }
-        ]
+            logger.error(f"ERROR decoding JSON (audio) from Gemini: {je}. Raw: {text_content[:300]}")
+            raise HTTPException(status_code=500, detail="Failed to parse analysis result.")
+
+        # Ensure extracted_text is a proper list
+        if not result.get("extracted_text") or not isinstance(result["extracted_text"], list):
+            result["extracted_text"] = [{"sender": "speaker", "text": "(No transcript available)"}]
 
         db = get_db()
         if db is not None:
-            analysis_data = result.get("analysis", {})
-            # Ensure required fields exist
-            for field in ["toxicity_score", "control_score", "gaslighting_score", "overall_risk_score"]:
-                if field not in analysis_data: analysis_data[field] = 0
-            if "explanation" not in analysis_data: analysis_data["explanation"] = "No explanation provided."
-            if "tags" not in analysis_data: analysis_data["tags"] = []
+            try:
+                analysis_data = result.get("analysis", {})
+                for field in ["toxicity_score", "control_score", "gaslighting_score", "overall_risk_score"]:
+                    if field not in analysis_data:
+                        analysis_data[field] = 0
+                if "explanation" not in analysis_data:
+                    analysis_data["explanation"] = "No explanation provided."
+                if "tags" not in analysis_data:
+                    analysis_data["tags"] = []
 
-            analysis_doc = AnalysisEntry(
-                source="audio",
-                extracted_text=result.get("extracted_text", []),
-                analysis=analysis_data,
-                contact_name=contact_name if (contact_name and contact_name != "Unknown") else analysis_data.get("partner_name", "Unknown"),
-                relationship_type=relationship_type,
-                tags=analysis_data.get("tags", [])
-            )
-            inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
-            result["_id"] = str(inserted_result.inserted_id)
-            logger.info(f"DEBUG: Audio analysis saved with ID: {result['_id']}")
+                analysis_doc = AnalysisEntry(
+                    source="audio",
+                    extracted_text=result.get("extracted_text", []),
+                    analysis=analysis_data,
+                    contact_name=contact_name if (contact_name and contact_name != "Unknown") else "Unknown",
+                    relationship_type=relationship_type,
+                    tags=analysis_data.get("tags", [])
+                )
+                inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+                result["_id"] = str(inserted_result.inserted_id)
+                logger.info(f"DEBUG: Audio analysis saved with ID: {result['_id']}")
+            except Exception as db_err:
+                logger.warning(f"WARNING: Could not save audio analysis to MongoDB (result still returned): {db_err}")
 
         return result
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"ERROR processing audio: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
 
 @app.post("/chat")
 async def chat_with_analysis(request: ChatRequest):
@@ -485,6 +656,34 @@ async def chat_with_analysis(request: ChatRequest):
         print(f"Error in chat endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+class TherapistRequest(BaseModel):
+    location: str
+
+@app.post("/recommend-therapists")
+async def recommend_therapists(request: TherapistRequest):
+    prompt = f"""
+    You are an AI assisting victims of domestic abuse. The user is looking for professional therapists or counseling centers near {request.location}.
+    Provide a list of 3 highly rated, real (or realistic) therapists or counseling agencies in the {request.location} area that specialize in trauma, domestic violence, or relationship counseling. 
+    Output your response STRICTLY as a JSON array of objects with these exact keys:
+    - name: Business or Therapist Name
+    - description: A short 1-sentence description of their specialty.
+    - phone: A realistic phone number.
+    Do not output any other text besides the JSON array.
+    """
+    try:
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            None,
+            lambda: analysis_model.generate_content(prompt)
+        )
+        text_content = response.text
+        json_match = re.search(r'\[.*\]', text_content, re.DOTALL)
+        clean_json = json_match.group(0) if json_match else text_content
+        return json.loads(clean_json)
+    except Exception as e:
+        logger.error(f"Error getting therapist recommendations: {e}")
+        return [{"name": "System Error", "description": "Could not fetch recommendations at this time.", "phone": ""}]
+
 @app.post("/initiate-call")
 async def initiate_call(to_number: str):
     try:
@@ -503,6 +702,21 @@ async def initiate_call(to_number: str):
                 "Content-Type": "application/json"
             }
             payload = {
+                "assistant": {
+                    "name": "Haven Forensic Assistant",
+                    "firstMessage": "This is Project Haven Forensic Support. You are in a secure transmission. How can I assist with your safety and analysis today?",
+                    "model": {
+                        "provider": "openai",
+                        "model": "gpt-4",
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": SYSTEM_PROMPT_STS
+                            }
+                        ]
+                    },
+                    "voice": "jennifer-playht"
+                },
                 "phoneNumberId": "1f160ff1-b07a-482a-bc05-ad145bc099c7",
                 "customer": {
                     "number": to_number
@@ -517,11 +731,11 @@ async def initiate_call(to_number: str):
             
             if response.status_code not in (200, 201):
                 error_msg = response.text
-                print(f"Vapi API Error: {error_msg}")
+                logger.error(f"Vapi API Error Status {response.status_code}: {error_msg}")
                 raise HTTPException(status_code=500, detail=f"Failed to initiate call via Vapi: {error_msg}")
                 
             data = response.json()
-            print(f"DEBUG: Vapi Outbound call successful, Call ID: {data.get('id')}")
+            logger.info(f"DEBUG: Vapi Outbound call successful, Call ID: {data.get('id')}")
             return {"call_sid": data.get("id")}
             
     except Exception as e:

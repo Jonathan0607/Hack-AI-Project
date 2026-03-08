@@ -7,21 +7,21 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Conversation, Message } from '../../types';
 
 const getRiskColor = (score: number) => {
-  if (score >= 0.8 || score >= 8) return 'text-red-500 bg-red-50 border-red-100';
-  if (score >= 0.5 || score >= 5) return 'text-amber-500 bg-amber-50 border-amber-100';
-  return 'text-[#5A9C8D] bg-[#5A9C8D]/10 border-[#5A9C8D]/20';
+  if (score >= 0.8 || score >= 8) return 'text-red-500 bg-red-500/10 border-red-500/20';
+  if (score >= 0.5 || score >= 5) return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+  return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
 };
 
-const getRiskIcon = (score: number, className: string = "w-5 h-5") => {
-  if (score >= 0.8 || score >= 8) return <span className={`text-red-500 font-bold ${className}`}>!</span>;
-  if (score >= 0.5 || score >= 5) return <AlertCircle className={`text-amber-500 ${className}`} />;
-  return <CheckCircle2 className={`text-[#5A9C8D] ${className}`} />;
+const getRiskIcon = (score: number) => {
+  if (score >= 0.8 || score >= 8) return <div className="w-5 h-5 flex items-center justify-center"><AlertCircle className="w-5 h-5 text-red-500" /></div>;
+  if (score >= 0.5 || score >= 5) return <AlertCircle className="w-5 h-5 text-amber-500" />;
+  return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
 };
 
 const getProgressBarColor = (score: number) => {
   if (score >= 8) return 'bg-red-500';
   if (score >= 5) return 'bg-amber-500';
-  return 'bg-[#5A9C8D]';
+  return 'bg-emerald-500';
 };
 
 const ProjectHavenDove = ({ className }: { className?: string }) => (
@@ -78,6 +78,10 @@ export default function HavenDashboard() {
   const [isCalling, setIsCalling] = useState(false);
   const [callSid, setCallSid] = useState<string | null>(null);
 
+  const [therapistLocation, setTherapistLocation] = useState('');
+  const [therapists, setTherapists] = useState<{name: string, description: string, phone: string}[] | null>(null);
+  const [isLoadingTherapists, setIsLoadingTherapists] = useState(false);
+
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -86,37 +90,34 @@ export default function HavenDashboard() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  const refreshData = () => {
+    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+    fetch(`${BASE_URL}/analyses`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+      .then(res => res.json())
+      .then(data => setHistoricalData(Array.isArray(data) ? [...data].reverse() : []))
+      .catch(err => console.error("Error fetching historical data:", err));
+
+    fetch(`${BASE_URL}/stats`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+      .then(res => res.json())
+      .then(data => setStatsData(data))
+      .catch(err => console.error("Error fetching stats:", err));
+
+    fetch(`${BASE_URL}/conversations`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+      .then(res => res.json())
+      .then(data => setConversations(Array.isArray(data) ? data : []))
+      .catch(err => console.error("Error fetching conversations:", err));
+  };
+
+  useEffect(() => {
+    refreshData();
+  }, [activeTab]);
+
   useEffect(() => {
     if (endOfChatRef.current) {
       endOfChatRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [chatHistory, isChatLoading]);
-
-  useEffect(() => {
-    fetch(`${BASE_URL}/conversations`)
-      .then(res => res.json())
-      .then(data => setConversations(data))
-      .catch(err => console.error("Error fetching conversations:", err));
-      
-    const historicalUrl = selectedContactFilter === 'All' 
-      ? `${BASE_URL}/analyses` 
-      : `${BASE_URL}/analyses?contact_name=${encodeURIComponent(selectedContactFilter)}`;
-      
-    fetch(historicalUrl)
-      .then(res => res.json())
-      .then(data => setHistoricalData(Array.isArray(data) ? data.reverse() : []))
-      .catch(err => console.error("Error fetching historical data:", err));
-      
-    fetch(`${BASE_URL}/stats`)
-      .then(res => res.json())
-      .then(data => setStatsData(data))
-      .catch(err => console.error("Error fetching stats:", err));
-      
-    fetch(`${BASE_URL}/contacts`)
-      .then(res => res.json())
-      .then(data => setContacts(data))
-      .catch(err => console.error("Error fetching contacts:", err));
-  }, [activeTab, selectedContactFilter]);
+  }, [chatHistory]);
 
   useEffect(() => {
     if (endOfMessagesRef.current) {
@@ -177,7 +178,11 @@ export default function HavenDashboard() {
     formData.append('contact_name', cName || contactInfo.name || 'Unknown');
     formData.append('relationship_type', cRel || contactInfo.relationship || 'Unknown');
     try {
-      const res = await fetch(`${BASE_URL}/analyze-screenshot`, { method: 'POST', body: formData });
+      const res = await fetch(`${BASE_URL}/analyze-screenshot`, { 
+        method: 'POST', 
+        body: formData,
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+      });
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setAnalysisResult(data);
@@ -196,7 +201,11 @@ export default function HavenDashboard() {
     formData.append('contact_name', cName || contactInfo.name || 'Unknown');
     formData.append('relationship_type', cRel || contactInfo.relationship || 'Unknown');
     try {
-      const res = await fetch(`${BASE_URL}/transcribe-audio`, { method: 'POST', body: formData });
+      const res = await fetch(`${BASE_URL}/transcribe-audio`, { 
+        method: 'POST', 
+        body: formData,
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+      });
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setAnalysisResult(data);
@@ -249,7 +258,8 @@ export default function HavenDashboard() {
     setIsCalling(true);
     try {
       const res = await fetch(`${BASE_URL}/initiate-call?to_number=${encodeURIComponent(phoneNumber)}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'ngrok-skip-browser-warning': 'true' }
       });
       const data = await res.json();
       if (data.call_sid) {
@@ -265,6 +275,28 @@ export default function HavenDashboard() {
     }
   };
 
+  const handleFindTherapists = async () => {
+    if (!therapistLocation.trim()) return;
+    setIsLoadingTherapists(true);
+    setTherapists(null);
+    try {
+      const res = await fetch(`${BASE_URL}/recommend-therapists`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true' 
+        },
+        body: JSON.stringify({ location: therapistLocation })
+      });
+      const data = await res.json();
+      setTherapists(Array.isArray(data) ? data : []);
+    } catch (error) {
+      showToast('Failed to find therapists.');
+    } finally {
+      setIsLoadingTherapists(false);
+    }
+  };
+
   const handleSendChatMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!chatInput.trim() || !analysisResult || isChatLoading) return;
@@ -277,7 +309,10 @@ export default function HavenDashboard() {
     try {
       const res = await fetch(`${BASE_URL}/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
         body: JSON.stringify({
           extracted_text: analysisResult.extracted_text,
           analysis: analysisResult.analysis,
@@ -366,7 +401,7 @@ export default function HavenDashboard() {
                   : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
               >
-                <Phone className="w-4 h-4" /> STS
+                <Phone className="w-4 h-4" /> Secure Call
               </button>
               <button
                 onClick={() => setActiveTab('insights')}
@@ -438,7 +473,7 @@ export default function HavenDashboard() {
                 Project Haven's core engines are online. You can now monitor live threat streams, scan digital evidence, or perform acoustic forensics.
               </p>
 
-              <div className="flex gap-6 w-full max-w-2xl">
+              <div className="flex gap-6 w-full max-w-2xl mb-8">
                 <button onClick={() => setActiveTab('live')} className="flex-1 bg-[#1E3A5F] hover:bg-[#0F223D] text-white p-5 rounded-2xl font-bold flex flex-col items-center gap-3 transition-all shadow-[0_10px_30px_rgba(30,58,95,0.3)] hover:-translate-y-1">
                   <Play className="w-8 h-8 opacity-80" />
                   Live Stream
@@ -452,6 +487,35 @@ export default function HavenDashboard() {
                   Voice Engine
                 </button>
               </div>
+
+              {/* Emergency Resources */}
+              <div className="w-full max-w-2xl bg-red-50/80 border-2 border-red-500/20 rounded-2xl p-6 text-left shadow-inner flex flex-col md:flex-row items-center md:items-start gap-4">
+                <div className="bg-red-500/10 p-4 rounded-full md:mt-1">
+                  <ShieldAlert className="w-8 h-8 text-red-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-red-800 mb-1">Emergency Resources</h3>
+                  <p className="text-red-700/80 font-medium text-sm mb-4">If you or someone you know is in immediate danger or experiencing a crisis, please reach out.</p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1 bg-white rounded-xl p-4 border border-red-500/10 shadow-sm flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-red-600" />
+                      <div>
+                        <div className="font-bold text-slate-800 text-sm">Suicide & Crisis Lifeline</div>
+                        <a href="tel:988" className="text-red-600 font-extrabold text-lg hover:underline">988</a>
+                      </div>
+                    </div>
+                    <div className="flex-1 bg-white rounded-xl p-4 border border-red-500/10 shadow-sm flex items-center gap-3">
+                      <MessageSquare className="w-5 h-5 text-red-600" />
+                      <div>
+                        <div className="font-bold text-slate-800 text-sm">Crisis Text Line</div>
+                        <div className="text-red-600 font-extrabold text-lg">Text HOME to 741741</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </motion.div>
           </div>
         )}
@@ -478,7 +542,7 @@ export default function HavenDashboard() {
                     <div className="flex justify-between items-start mb-3">
                       <span className="font-mono text-xs text-[#1E3A5F] font-bold">{conv.thread_id}</span>
                       <span className={`px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-extrabold border flex items-center gap-1.5 ${getRiskColor(conv.risk_score)}`}>
-                        {getRiskIcon(conv.risk_score, "w-3 h-3")}
+                        {getRiskIcon(conv.risk_score)}
                         {(conv.risk_score * 100).toFixed(0)}%
                       </span>
                     </div>
@@ -736,7 +800,7 @@ export default function HavenDashboard() {
                         <div>
                           <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">Diagnostic Threat Level</p>
                           <h3 className="text-4xl font-extrabold flex items-center gap-3">
-                            {getRiskIcon(analysisResult.analysis.overall_risk_score, "w-8 h-8")}
+                            {getRiskIcon(analysisResult.analysis.overall_risk_score)}
                             {analysisResult.analysis.overall_risk_score} <span className="text-xl opacity-60 font-semibold mt-2">/ 10</span>
                           </h3>
                         </div>
@@ -920,15 +984,16 @@ export default function HavenDashboard() {
           </div>
         )}
 
-        {/* ----- STS TAB ----- */}
+        {/* ----- SECURE CALL TAB ----- */}
         {activeTab === 'sts' && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="w-full max-w-md bg-white shadow-[0_20px_60px_rgba(90,156,141,0.15)] rounded-3xl border border-[#5A9C8D]/10 p-10 text-center space-y-8">
+          <div className="flex-1 flex flex-col xl:flex-row items-center justify-center gap-8 w-full max-w-6xl mx-auto py-8">
+            {/* Call Section */}
+            <div className="w-full xl:w-1/2 bg-white shadow-[0_20px_60px_rgba(90,156,141,0.15)] rounded-3xl border border-[#5A9C8D]/10 p-10 text-center space-y-8">
               <div className="w-20 h-20 bg-[#5A9C8D]/10 rounded-full flex items-center justify-center mx-auto border border-[#5A9C8D]/20">
                 <Phone className="w-10 h-10 text-[#5A9C8D]" />
               </div>
-              <h3 className="text-2xl font-black text-[#1E3A5F]">STS Transmission</h3>
-              <p className="text-slate-500 text-sm">Initiate a monitored call with speech-to-speech AI analysis active.</p>
+              <h3 className="text-2xl font-black text-[#1E3A5F]">Secure Untraceable Call</h3>
+              <p className="text-slate-500 text-sm">Initiate a monitored call that leaves no trace or history on your personal device.</p>
               <input
                 type="tel"
                 placeholder="+1 (555) 000-0000"
@@ -942,7 +1007,7 @@ export default function HavenDashboard() {
                 className="w-full py-4 bg-[#1E3A5F] hover:bg-[#0F223D] text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 shadow-lg"
               >
                 {isCalling ? <Loader2 className="w-5 h-5 animate-spin" /> : <PhoneForwarded className="w-5 h-5" />}
-                {isCalling ? 'Connecting...' : 'Initiate Transmission'}
+                {isCalling ? 'Connecting...' : 'Initiate Secure Call'}
               </button>
               {callSid && (
                 <div className="bg-[#5A9C8D]/10 border border-[#5A9C8D]/20 rounded-xl p-4 text-sm text-[#5A9C8D] font-bold">
@@ -950,108 +1015,225 @@ export default function HavenDashboard() {
                 </div>
               )}
             </div>
+
+            {/* Therapist Finder Section */}
+            <div className="w-full xl:w-1/2 bg-white shadow-[0_20px_60px_rgba(30,58,95,0.1)] rounded-3xl border border-[#1E3A5F]/10 p-10 text-center space-y-8 self-stretch flex flex-col">
+              <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto border border-blue-500/20 shrink-0">
+                <Users className="w-10 h-10 text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-black text-[#1E3A5F] shrink-0">Find Local Support</h3>
+              <p className="text-slate-500 text-sm shrink-0">Search for specialized trauma-informed therapists and counseling agencies in your exact area.</p>
+              
+              <div className="flex gap-2 shrink-0">
+                <input
+                  type="text"
+                  placeholder="City, State or Zip Code"
+                  value={therapistLocation}
+                  onChange={(e) => setTherapistLocation(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleFindTherapists()}
+                  className="flex-1 bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-[#1E3A5F] font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                />
+                <button
+                  onClick={handleFindTherapists}
+                  disabled={!therapistLocation.trim() || isLoadingTherapists}
+                  className="px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all disabled:opacity-50 shadow-lg flex items-center justify-center"
+                >
+                  {isLoadingTherapists ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Search'}
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0 text-left space-y-4">
+                {therapists && therapists.length > 0 ? (
+                  therapists.map((t, i) => (
+                    <div key={i} className="bg-slate-50 rounded-2xl p-5 border border-slate-200 hover:border-blue-500/30 transition-colors">
+                      <h4 className="font-bold text-[#1E3A5F] text-lg">{t.name}</h4>
+                      <p className="text-sm text-slate-600 mt-2 leading-relaxed font-medium">{t.description}</p>
+                      {t.phone && (
+                        <div className="mt-4 flex items-center gap-2 text-blue-700 font-bold bg-blue-100/50 w-fit px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm">
+                          <Phone className="w-4 h-4" /> {t.phone}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  !isLoadingTherapists && therapists && therapists.length === 0 && (
+                    <div className="text-slate-400 font-medium py-8 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                      No professionals found in this area.
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
           </div>
         )}
 
         {/* ----- INSIGHTS TAB ----- */}
         {activeTab === 'insights' && (
-          <div className="flex-1 overflow-y-auto custom-scrollbar w-full">
-            <div className="max-w-6xl mx-auto space-y-8 pb-12">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
-                <h2 className="text-3xl font-extrabold text-[#1E3A5F] flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#5A9C8D]/10 flex items-center justify-center text-[#5A9C8D]">
-                    <BarChart3 className="w-6 h-6" />
-                  </div>
-                  Forensic Insights
-                </h2>
-                
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Filter by Vector:</span>
-                  <select 
-                    value={selectedContactFilter}
-                    onChange={(e) => setSelectedContactFilter(e.target.value)}
-                    className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-[#1E3A5F] focus:outline-none focus:border-[#5A9C8D] shadow-sm cursor-pointer"
-                  >
-                    <option value="All">All Contacts</option>
-                    {contacts.map(c => (
-                      <option key={c.name} value={c.name}>{c.name}</option>
-                    ))}
-                  </select>
+          <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-8">
+            <div className="flex justify-between items-center border-b border-[#2A4B6E] pb-4">
+              <div className="flex items-center gap-3">
+                <BarChart3 className="w-8 h-8 text-[#5A9C8D]" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white tracking-tight">Forensic Insights</h2>
+                  <p className="text-sm text-slate-400">Time-series tracking and psychological mapping of ingested logs.</p>
+                </div>
+              </div>
+              <button
+                onClick={refreshData}
+                className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] border border-[#2A4B6E] hover:border-[#5A9C8D]/50 rounded-xl text-xs font-bold text-slate-300 uppercase tracking-widest transition-all"
+              >
+                <Loader2 className="w-3.5 h-3.5" /> Refresh
+              </button>
+            </div>
+
+            {/* Live summary stat cards */}
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                {
+                  label: "Total Scans",
+                  value: statsData?.total_analyses ?? historicalData.length,
+                  sub: "Forensic ingestions logged",
+                  color: "text-[#5A9C8D]",
+                },
+                {
+                  label: "Avg Risk Score",
+                  value: statsData?.avg_risk_score != null
+                    ? `${statsData.avg_risk_score.toFixed(1)}/10`
+                    : historicalData.length > 0
+                      ? `${(historicalData.reduce((s: number, d: any) => s + (d.analysis?.overall_risk_score ?? 0), 0) / historicalData.length).toFixed(1)}/10`
+                      : "—",
+                  sub: "Across all ingestions",
+                  color: (statsData?.avg_risk_score ?? 0) >= 7 ? "text-red-400" : (statsData?.avg_risk_score ?? 0) >= 4 ? "text-amber-400" : "text-emerald-400",
+                },
+                {
+                  label: "Top Threat Tag",
+                  value: statsData?.tag_counts
+                    ? Object.entries(statsData.tag_counts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] ?? "None"
+                    : "—",
+                  sub: statsData?.tag_counts
+                    ? `${Object.entries(statsData.tag_counts).sort((a: any, b: any) => b[1] - a[1])[0]?.[1] ?? 0} occurrences`
+                    : "No data yet",
+                  color: "text-amber-400",
+                },
+              ].map((stat, i) => (
+                <div key={i} className="bg-[#1E3A5F]/30 border border-[#2A4B6E] rounded-2xl p-5 flex flex-col gap-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">{stat.label}</span>
+                  <span className={`text-3xl font-black ${stat.color} leading-none`}>{stat.value}</span>
+                  <span className="text-xs text-slate-500">{stat.sub}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 pb-12">
+              {/* Timeline Graph */}
+              <div className="bg-[#1E3A5F]/20 border border-[#2A4B6E] p-6 rounded-2xl md:col-span-2">
+                <div className="flex items-center gap-2 mb-6 text-sm font-bold text-slate-300 uppercase tracking-widest">
+                  <Clock className="w-4 h-4 text-[#5A9C8D]" /> Longitudinal Abuse Escalation Tracker
+                </div>
+                <div className="h-[300px] w-full">
+                  {historicalData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={historicalData.map((d: any) => ({
+                        time: new Date(d.timestamp).toLocaleDateString() + ' ' + new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        score: d.analysis.overall_risk_score,
+                        contact: d.contact_name || 'Unknown',
+                        tags: d.analysis.tags?.join(', ') || 'N/A'
+                      }))}>
+                        <defs>
+                          <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#5A9C8D" stopOpacity={0.5} />
+                            <stop offset="95%" stopColor="#5A9C8D" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#2A4B6E" vertical={false} />
+                        <XAxis dataKey="time" stroke="#CDE0D9" fontSize={10} minTickGap={30} />
+                        <YAxis stroke="#CDE0D9" fontSize={10} domain={[0, 10]} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#0F223D', borderColor: '#2A4B6E', borderRadius: '12px' }}
+                          itemStyle={{ color: '#5A9C8D', fontWeight: 'bold' }}
+                          labelStyle={{ color: '#F9F8F4', marginBottom: '8px' }}
+                          formatter={(val: any, _name: any, props: any) => [
+                            `${val}/10`,
+                            `Risk — ${props.payload.contact}`
+                          ]}
+                        />
+                        <Area type="monotone" dataKey="score" stroke="#5A9C8D" strokeWidth={3} fillOpacity={1} fill="url(#colorRisk)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-slate-500 italic text-sm">No historical data available yet. Please conduct a scan.</div>
+                  )}
                 </div>
               </div>
 
-              {/* Time-Series Chart */}
-              <div className="bg-white shadow-[0_20px_60px_rgba(90,156,141,0.15)] rounded-3xl border border-[#5A9C8D]/10 p-8">
-                <h3 className="text-xs font-bold text-[#5A9C8D] uppercase tracking-widest mb-6 flex items-center gap-2">
-                  <Clock className="w-4 h-4" /> Risk Score Over Time
-                </h3>
-                {historicalData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={historicalData.map((d, i) => ({
-                      name: `Scan ${i + 1}`,
-                      score: d.analysis?.overall_risk_score || 0,
-                      contact: d.contact_name || 'Unknown',
-                    }))}>
-                      <defs>
-                        <linearGradient id="riskGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#5A9C8D" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#5A9C8D" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
-                      <YAxis domain={[0, 10]} stroke="#94a3b8" fontSize={12} />
-                      <Tooltip contentStyle={{ background: '#1E3A5F', border: 'none', borderRadius: '12px', color: 'white', fontSize: '13px' }} />
-                      <Area type="monotone" dataKey="score" stroke="#5A9C8D" strokeWidth={3} fill="url(#riskGradient)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="text-center py-16 text-slate-400">
-                    <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                    <p className="font-bold">No data yet. Run a scan to populate the timeline.</p>
-                  </div>
-                )}
+              {/* Incident Tags Bar Matrix */}
+              <div className="bg-[#1E3A5F]/20 border border-[#2A4B6E] p-6 rounded-2xl flex flex-col">
+                <div className="flex items-center gap-2 mb-6 text-sm font-bold text-slate-300 uppercase tracking-widest">
+                  <Network className="w-4 h-4 text-[#5A9C8D]" /> Identified Incident Groupings
+                </div>
+                <div className="flex-1 flex flex-col justify-center">
+                  {statsData && statsData.tag_counts && Object.keys(statsData.tag_counts).length > 0 ? (
+                    <div className="space-y-4 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
+                      {Object.entries(statsData.tag_counts).sort((a: any, b: any) => b[1] - a[1]).map(([tag, count]: any) => (
+                        <div key={tag} className="flex items-center justify-between">
+                          <span className="text-sm text-slate-200 capitalize w-1/3 truncate text-ellipsis">{tag}</span>
+                          <div className="flex-1 mx-4 h-2 bg-[#0F223D] rounded-full overflow-hidden">
+                            <div
+                              className={`h-full transition-all duration-500 ${count >= 5 ? 'bg-red-500' : count >= 3 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                              style={{ width: `${Math.min((count / (statsData.total_analyses || 1)) * 100, 100)}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-xs font-mono bg-[#1E3A5F] px-2 py-1 rounded text-[#5A9C8D] border border-[#2A4B6E] w-10 text-center">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-slate-500 italic text-sm">No grouping tags derived yet.</div>
+                  )}
+                </div>
               </div>
 
-              {/* Incident Groupings */}
-              <div className="bg-white shadow-[0_20px_60px_rgba(90,156,141,0.15)] rounded-3xl border border-[#5A9C8D]/10 p-8">
-                <h3 className="text-xs font-bold text-[#5A9C8D] uppercase tracking-widest mb-6 flex items-center gap-2">
-                  <Network className="w-4 h-4" /> Incident Tag Groupings
-                </h3>
-                {statsData?.tag_counts && Object.keys(statsData.tag_counts).length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {Object.entries(statsData.tag_counts).map(([tag, count]: [string, any]) => (
-                      <div key={tag} className="bg-slate-50 border border-slate-100 rounded-2xl p-5 flex flex-col items-center gap-2 hover:border-[#5A9C8D]/30 transition-all">
-                        <span className="text-2xl font-black text-[#1E3A5F]">{count}</span>
-                        <span className="text-xs font-bold text-[#5A9C8D] uppercase tracking-wider text-center">{tag}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-slate-400 font-bold">No incident tags recorded yet.</div>
-                )}
-              </div>
+              {/* High-Risk Contact Vectors (Mini) */}
+              <div className="bg-[#1E3A5F]/20 border border-[#2A4B6E] p-6 rounded-2xl flex flex-col">
+                <div className="flex items-center gap-2 mb-6 text-sm font-bold text-slate-300 uppercase tracking-widest">
+                  <Users className="w-4 h-4 text-[#5A9C8D]" /> High-Risk Contact Vectors
+                </div>
+                <div className="flex-1 overflow-y-auto max-h-[250px] custom-scrollbar space-y-3 pr-2">
+                  {historicalData.length > 0 ? (
+                    (() => {
+                      const list = historicalData.reduce((acc: any[], curr: any) => {
+                        const name = curr.contact_name || curr.analysis?.partner_name || 'Unknown';
+                        const existing = acc.find(c => c.name === name);
+                        const score = curr.analysis?.overall_risk_score || 0;
+                        if (existing) {
+                          existing.count += 1;
+                          existing.highestScore = Math.max(existing.highestScore, score);
+                          existing.totalScore += score;
+                        } else {
+                          acc.push({ name, relationship: curr.relationship_type || 'Other', count: 1, highestScore: score, totalScore: score });
+                        }
+                        return acc;
+                      }, []).sort((a, b) => b.highestScore - a.highestScore);
 
-              {/* Actionable Support */}
-              <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-8">
-                <h3 className="text-xs font-bold text-red-600 uppercase tracking-widest mb-6 flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4" /> Crisis & Support Resources
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <a href="https://www.thehotline.org" target="_blank" rel="noopener noreferrer" className="bg-white border border-red-200 rounded-2xl p-6 hover:bg-red-50 hover:border-red-300 transition-all group">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Phone className="w-5 h-5 text-red-500" />
-                      <span className="font-extrabold text-[#1E3A5F] group-hover:text-red-600 transition-colors">National DV Hotline</span>
-                    </div>
-                    <p className="text-slate-500 text-sm">1-800-799-7233 • Available 24/7</p>
-                  </a>
-                  <a href="https://www.crisistextline.org" target="_blank" rel="noopener noreferrer" className="bg-white border border-red-200 rounded-2xl p-6 hover:bg-red-50 hover:border-red-300 transition-all group">
-                    <div className="flex items-center gap-3 mb-2">
-                      <MessageSquare className="w-5 h-5 text-red-500" />
-                      <span className="font-extrabold text-[#1E3A5F] group-hover:text-red-600 transition-colors">Crisis Text Line</span>
-                    </div>
-                    <p className="text-slate-500 text-sm">Text HOME to 741741</p>
-                  </a>
+                      return list.map((contact: any) => {
+                        const avg = contact.totalScore / contact.count;
+                        return (
+                          <div key={contact.name} className="flex justify-between items-center bg-[#0F223D]/60 p-3 rounded-xl border border-[#2A4B6E]">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-white uppercase tracking-wide text-sm">{contact.name}</span>
+                              <span className="text-[10px] text-slate-400 font-mono">{contact.count} incident{contact.count !== 1 ? 's' : ''} · avg {avg.toFixed(1)}/10</span>
+                            </div>
+                            <div className="flex flex-col items-end">
+                              <span className="text-[10px] uppercase font-bold text-slate-500">Max</span>
+                              <span className={`font-black ${contact.highestScore >= 7 ? 'text-red-400' : contact.highestScore >= 4 ? 'text-amber-400' : 'text-emerald-400'}`}>{contact.highestScore.toFixed(0)}/10</span>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()
+                  ) : (
+                    <div className="text-center text-slate-500 italic text-sm mt-10">No contact vectors mapped.</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1060,66 +1242,97 @@ export default function HavenDashboard() {
 
         {/* ----- CONTACTS TAB ----- */}
         {activeTab === 'contacts' && (
-          <div className="flex-1 overflow-y-auto custom-scrollbar w-full">
-            <div className="max-w-5xl mx-auto space-y-8 pb-12">
-              <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-extrabold text-[#1E3A5F] flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#5A9C8D]/10 flex items-center justify-center text-[#5A9C8D]">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  Contact Vectors
-                </h2>
+          <div className="flex-1 flex flex-col pr-2">
+            <div className="flex justify-between items-center mb-6 border-b border-[#2A4B6E] pb-4">
+              <div>
+                <h3 className="font-bold flex items-center gap-2 text-lg text-white">
+                  <Users className="w-5 h-5 text-[#5A9C8D]" /> Contact Vectors
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">{historicalData.length > 0 ? (new Set(historicalData.map(d => d.contact_name || 'Unknown'))).size : 0} contact(s) tracked · {historicalData.length} total incident(s)</p>
               </div>
-              {contacts.length > 0 ? (
-                <div className="space-y-4">
-                  {contacts.map((contact: any) => (
-                    <div key={contact.name} className="bg-white shadow-[0_12px_40px_rgba(90,156,141,0.1)] rounded-2xl border border-[#5A9C8D]/10 p-6 flex flex-col md:flex-row items-center justify-between gap-4 hover:border-[#5A9C8D]/30 transition-all">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black text-white ${contact.highestRisk >= 8 ? 'bg-red-500' : contact.highestRisk >= 5 ? 'bg-amber-500' : 'bg-[#5A9C8D]'}`}>
-                          {contact.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <h4 className="text-xl font-black text-[#1E3A5F]">{contact.name}</h4>
-                          <div className="flex items-center gap-2">
-                            <span className="bg-[#5A9C8D]/10 text-[#5A9C8D] border border-[#5A9C8D]/20 px-3 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-widest">
-                              {contact.relationship}
-                            </span>
-                            <span className="text-slate-400 text-[10px] font-medium">
-                              {contact.count} Incidents / Avg Risk: {contact.avgRisk}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Aggregate Peak</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
-                              <div className={`h-full ${getProgressBarColor(contact.highestRisk)}`} style={{ width: `${(contact.highestRisk / 10) * 100}%` }}></div>
+              <button
+                onClick={refreshData}
+                className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] border border-[#2A4B6E] hover:border-[#5A9C8D]/50 rounded-xl text-xs font-bold text-slate-300 uppercase tracking-widest transition-all"
+              >
+                <Loader2 className="w-3.5 h-3.5" /> Refresh
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-5 pb-10">
+              {historicalData.length > 0 ? (
+                (() => {
+                  const contactStats = historicalData.reduce((acc: any, curr: any) => {
+                    const name = curr.contact_name || 'Unknown';
+                    if (!acc[name]) acc[name] = { name, relationship: curr.relationship_type || 'Other', count: 0, totalScore: 0, highestScore: 0, incidents: [] };
+                    acc[name].count += 1;
+                    const score = curr.analysis?.overall_risk_score || 0;
+                    acc[name].totalScore += score;
+                    acc[name].highestScore = Math.max(acc[name].highestScore, score);
+                    acc[name].incidents.push(curr);
+                    return acc;
+                  }, {});
+
+                  return Object.values(contactStats).sort((a: any, b: any) => b.highestScore - a.highestScore).map((contact: any, index: number) => {
+                    const avgRisk = contact.totalScore / contact.count;
+                    const recentIncidents = contact.incidents.slice(-3).reverse();
+                    return (
+                      <div key={index} className="bg-[#1E3A5F]/30 border border-[#2A4B6E] p-6 rounded-[2rem] hover:border-[#5A9C8D]/40 transition-all group">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-[#0F223D] rounded-2xl flex items-center justify-center border border-[#2A4B6E] group-hover:border-[#5A9C8D]/20 transition-all shrink-0">
+                              <User className="w-7 h-7 text-[#5A9C8D]" />
                             </div>
-                            <span className={`font-black text-xl ${contact.highestRisk >= 8 ? 'text-red-500' : contact.highestRisk >= 5 ? 'text-amber-500' : 'text-[#5A9C8D]'}`}>
-                              {contact.highestRisk.toFixed(0)}/10
-                            </span>
+                            <div className="space-y-1">
+                              <h4 className="text-xl font-black text-white">{contact.name}</h4>
+                              <div className="flex items-center gap-2">
+                                <span className="bg-[#5A9C8D]/10 text-[#5A9C8D] border border-[#5A9C8D]/20 px-3 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-widest">{contact.relationship}</span>
+                                <span className="text-slate-500 text-[10px]">{contact.count} incident(s)</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-6 items-center">
+                            <div className="flex flex-col items-center">
+                              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">Avg Risk</span>
+                              <span className={`text-2xl font-black ${getRiskColor(avgRisk).split(' ')[0]}`}>{avgRisk.toFixed(1)}</span>
+                            </div>
+                            <div className="flex flex-col items-center">
+                              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">Peak Risk</span>
+                              <span className={`text-2xl font-black ${getRiskColor(contact.highestScore).split(' ')[0]}`}>{contact.highestScore.toFixed(0)}/10</span>
+                            </div>
+                            <div className="w-28">
+                              <div className="h-2 bg-[#0F223D] rounded-full overflow-hidden">
+                                <div className={`h-full transition-all ${getProgressBarColor(contact.highestScore)}`} style={{ width: `${(contact.highestScore / 10) * 100}%` }} />
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <button 
-                          onClick={() => { setSelectedContactFilter(contact.name); setActiveTab('insights'); }}
-                          className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-[#5A9C8D] transition-all"
-                          title="View Insights"
-                        >
-                          <BarChart3 className="w-5 h-5" />
-                        </button>
+                        {recentIncidents.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-[#2A4B6E]/60 space-y-1.5">
+                            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Recent Incidents</span>
+                            {recentIncidents.map((inc: any, i: number) => (
+                              <div key={i} className="flex items-center justify-between text-xs bg-[#0F223D]/60 rounded-lg px-3 py-2">
+                                <span className="text-slate-400 font-mono">{new Date(inc.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                <div className="flex gap-1 flex-wrap justify-end">
+                                  {(inc.analysis?.tags || []).slice(0, 3).map((tag: string) => (
+                                    <span key={tag} className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold">{tag}</span>
+                                  ))}
+                                  {(!inc.analysis?.tags || inc.analysis.tags.length === 0) && <span className="text-slate-600 text-[10px]">No tags</span>}
+                                </div>
+                                <span className={`font-black text-sm ml-3 ${getRiskColor(inc.analysis?.overall_risk_score ?? 0).split(' ')[0]}`}>{inc.analysis?.overall_risk_score ?? 0}/10</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    );
+                  });
+                })()
               ) : (
-                <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-400 text-center">
-                  <div className="w-20 h-20 bg-[#5A9C8D]/5 rounded-full flex items-center justify-center mb-6">
+                <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 text-center">
+                  <div className="w-20 h-20 bg-[#1E3A5F]/20 rounded-full flex items-center justify-center mb-6">
                     <Users className="w-10 h-10 opacity-20" />
                   </div>
-                  <h4 className="text-lg font-bold text-[#1E3A5F] mb-2">No Contact Vectors Isolated</h4>
-                  <p className="max-w-[280px] text-sm text-slate-400">Run a Deep Scan or Voice Ingestion to begin relationship mapping.</p>
+                  <h4 className="text-lg font-bold text-white mb-2">No Contact Vectors Isolated</h4>
+                  <p className="max-w-[280px] text-sm text-slate-400">Initialize a Deep Scan or Voice Ingestion to begin relationship mapping.</p>
                 </div>
               )}
             </div>
