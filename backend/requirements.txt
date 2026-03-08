@@ -9,4 +9,3 @@ pillow
 elevenlabs
 twilio
 websockets
-ngrok

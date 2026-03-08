@@ -16,7 +16,6 @@ from twilio.rest import Client as TwilioClient
 from twilio.twiml.voice_response import VoiceResponse, Connect
 from fastapi import WebSocket, WebSocketDisconnect
 import base64
-import ngrok
 
 class Settings(BaseSettings):
     mongodb_uri: str = "mongodb://localhost:27017"
@@ -26,7 +25,6 @@ class Settings(BaseSettings):
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""
     twilio_phone_number: str = ""
-    ngrok_authtoken: str = ""
 
     class Config:
         env_file = "../.env"
@@ -121,26 +119,6 @@ class ChatRequest(BaseModel):
 
 @app.on_event("startup")
 async def startup_events():
-    # Ngrok Tunnel initialization
-    app.state.public_url = None
-    app.state.frontend_url = None
-    
-    # Check for external Ngrok URL first (managed by CLI)
-    if os.path.exists("tunnel_url.txt"):
-        try:
-            with open("tunnel_url.txt", "r") as f:
-                app.state.public_url = f.read().strip()
-                print(f"Using external Ngrok backend URL: {app.state.public_url}")
-        except Exception as e:
-            print(f"Error reading external tunnel URL: {e}")
-
-    if os.path.exists("frontend_url.txt"):
-        try:
-            with open("frontend_url.txt", "r") as f:
-                app.state.frontend_url = f.read().strip()
-                print(f"Using external Ngrok frontend URL: {app.state.frontend_url}")
-        except Exception as e:
-            print(f"Error reading frontend tunnel URL: {e}")
 
     # Database initialization
     try:
@@ -157,12 +135,6 @@ async def startup_events():
 async def shutdown_events():
     if hasattr(app, 'mongodb_client'):
         app.mongodb_client.close()
-    if hasattr(app.state, 'backend_listener') and app.state.backend_listener:
-        print("Closing backend ngrok listener...")
-        await ngrok.disconnect(app.state.backend_listener.url())
-    if hasattr(app.state, 'frontend_listener') and app.state.frontend_listener:
-        print("Closing frontend ngrok listener...")
-        await ngrok.disconnect(app.state.frontend_listener.url())
 
 @app.get("/")
 async def root():
@@ -288,8 +260,8 @@ async def initiate_call(to_number: str):
 
         client = TwilioClient(settings.twilio_account_sid, settings.twilio_auth_token)
         
-        # Use public URL from Ngrok if available, else fallback to placeholder
-        public_url = app.state.public_url if app.state.public_url else "https://project-haven-backend.loca.lt"
+        # Use placeholder public URL for localhost development or actual prod domain
+        public_url = "https://project-haven-backend.loca.lt"
         
         response = VoiceResponse()
         connect = Connect()
