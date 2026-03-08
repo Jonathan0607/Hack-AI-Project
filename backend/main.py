@@ -12,15 +12,28 @@ import PIL.Image
 import io
 import httpx
 from elevenlabs.client import ElevenLabs
+<<<<<<< HEAD
 from analytics.stats_engine import RiskAnalyzer
+=======
+from twilio.rest import Client as TwilioClient
+from twilio.twiml.voice_response import VoiceResponse, Connect
+from fastapi import WebSocket, WebSocketDisconnect
+import base64
+>>>>>>> main
 
 class Settings(BaseSettings):
     mongodb_uri: str = "mongodb://localhost:27017"
     db_name: str = "haven"
     gemini_api_key: str = ""
     elevenlabs_api_key: str = ""
+<<<<<<< HEAD
     port: str = "8000"
     next_public_api_url: str = "http://localhost:8000"
+=======
+    twilio_account_sid: str = ""
+    twilio_auth_token: str = ""
+    twilio_phone_number: str = ""
+>>>>>>> main
 
     class Config:
         env_file = "../.env"
@@ -106,6 +119,7 @@ The user is asking you a follow up question.
 You MUST provide helpful, supportive, and highly actionable advice.
 Critically, you must use your Google Search grounding tool to explicitly provide and link to real-world resources (e.g. real therapists, hospital articles, verifiable abuse hotlines, reputable psychological associations).
 Ensure the tone is supportive, professional, and clear. Format your response strictly using rich Markdown formatting (e.g. bolding, bullet points, hyperlinks to actual websites).
+Keep your responses extremely concise and to the point. Limit your response to 2-3 short paragraphs at most, and focus on direct, practical advice without being overwhelming.
 """
 
 class ChatRequest(BaseModel):
@@ -114,13 +128,23 @@ class ChatRequest(BaseModel):
     question: str
 
 @app.on_event("startup")
-async def startup_db_client():
-    app.mongodb_client = AsyncIOMotorClient(settings.mongodb_uri)
-    app.mongodb = app.mongodb_client[settings.db_name]
+async def startup_events():
+
+    # Database initialization
+    try:
+        print("Connecting to MongoDB...")
+        app.mongodb_client = AsyncIOMotorClient(settings.mongodb_uri)
+        app.mongodb = app.mongodb_client[settings.db_name]
+        # Verify connection (non-blocking ping)
+        # We don't await an operation here to avoid blocking startup if DB is down.
+    except Exception as e:
+        print(f"Failed to connect to MongoDB: {e}")
+        app.mongodb = None
 
 @app.on_event("shutdown")
-async def shutdown_db_client():
-    app.mongodb_client.close()
+async def shutdown_events():
+    if hasattr(app, 'mongodb_client'):
+        app.mongodb_client.close()
 
 @app.get("/")
 async def root():
@@ -301,4 +325,113 @@ async def chat_with_analysis(request: ChatRequest):
         return {"answer": answer_text}
     except Exception as e:
         print(f"Error in chat endpoint: {e}")
+<<<<<<< HEAD
         return {"answer": "Network latency detected. Please try your search again."}
+=======
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/initiate-call")
+async def initiate_call(to_number: str):
+    try:
+        # Ensure number is in E.164 format (simple version for US)
+        if not to_number.startswith('+'):
+            if len(to_number) == 10:
+                to_number = f"+1{to_number}"
+            else:
+                to_number = f"+{to_number}"
+
+        client = TwilioClient(settings.twilio_account_sid, settings.twilio_auth_token)
+        
+        # Use placeholder public URL for localhost development or actual prod domain
+        public_url = "https://project-haven-backend.loca.lt"
+        
+        response = VoiceResponse()
+        connect = Connect()
+        connect.stream(url=f"wss://{public_url.split('//')[1]}/twilio-voice-stream")
+        response.append(connect)
+        
+        print(f"Initiating call to {to_number} from {settings.twilio_phone_number}")
+        
+        call = client.calls.create(
+            to=to_number,
+            from_=settings.twilio_phone_number,
+            twiml=str(response)
+        )
+        return {"call_sid": call.sid}
+    except Exception as e:
+        error_msg = str(e)
+        print(f"Error initiating call: {error_msg}")
+        raise HTTPException(status_code=500, detail=error_msg)
+
+@app.websocket("/twilio-voice-stream")
+async def twilio_voice_stream(websocket: WebSocket):
+    await websocket.accept()
+    print("Twilio WebSocket connected")
+    
+    # ElevenLabs STS WebSocket URL
+    # Voice ID: QLAlOeRuLwKX0skeTR7R
+    voice_id = "QLAlOeRuLwKX0skeTR7R"
+    sts_url = f"wss://api.elevenlabs.io/v1/speech-to-speech/{voice_id}/stream-input?model_id=eleven_english_sts_v2"
+    
+    async with httpx.AsyncClient() as client:
+        # ElevenLabs requires a WebSocket for real-time STS
+        # We'll use the 'websockets' library for the ElevenLabs connection
+        import websockets as ws_lib
+        
+        async with ws_lib.connect(sts_url, extra_headers={"xi-api-key": settings.elevenlabs_api_key}) as el_ws:
+            # Send initial configuration
+            bos_message = {
+                "text": " ", # STS requires text even if empty for initiation
+                "voice_settings": {
+                    "stability": 0.5,
+                    "similarity_boost": 0.8
+                },
+                "generation_config": {
+                    "chunk_length_schedule": [120, 160, 250, 290]
+                }
+            }
+            await el_ws.send(json.dumps(bos_message))
+            
+            async def receive_from_el():
+                try:
+                    async for message in el_ws:
+                        data = json.loads(message)
+                        if data.get("audio"):
+                            # Send audio back to Twilio
+                            audio_payload = data["audio"]
+                            media_message = {
+                                "event": "media",
+                                "media": {
+                                    "payload": audio_payload
+                                }
+                            }
+                            await websocket.send_text(json.dumps(media_message))
+                except Exception as e:
+                    print(f"Error receiving from ElevenLabs: {e}")
+
+            asyncio.create_task(receive_from_el())
+            
+            try:
+                while True:
+                    data = await websocket.receive_text()
+                    msg = json.loads(data)
+                    
+                    if msg["event"] == "media":
+                        # Forward audio chunk to ElevenLabs
+                        payload = msg["media"]["payload"]
+                        el_msg = {
+                            "audio": payload,
+                            "flush": False
+                        }
+                        await el_ws.send(json.dumps(el_msg))
+                    elif msg["event"] == "stop":
+                        print("Twilio stopped the stream")
+                        break
+            except WebSocketDisconnect:
+                print("Twilio WebSocket disconnected")
+            except Exception as e:
+                print(f"Error in Twilio stream loop: {e}")
+            finally:
+                # End stream with ElevenLabs
+                await el_ws.send(json.dumps({"audio": ""}))
+>>>>>>> main

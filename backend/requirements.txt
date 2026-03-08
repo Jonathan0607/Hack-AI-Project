@@ -7,5 +7,10 @@ python-multipart
 google-generativeai
 pillow
 elevenlabs
+<<<<<<< HEAD
 pytest
 analytics.stats_engine
+=======
+twilio
+websockets
+>>>>>>> main
