@@ -12,15 +12,19 @@ import PIL.Image
 import io
 import httpx
 from elevenlabs.client import ElevenLabs
+from analytics.stats_engine import RiskAnalyzer, get_mock_nlp_scores
 
 class Settings(BaseSettings):
     mongodb_uri: str = "mongodb://localhost:27017"
     db_name: str = "haven"
     gemini_api_key: str = ""
     elevenlabs_api_key: str = ""
+    port: str = "8000"
+    next_public_api_url: str = "http://localhost:8000"
 
     class Config:
         env_file = "../.env"
+        extra = "ignore"
 
 settings = Settings()
 app = FastAPI(title="Project Haven")
@@ -137,9 +141,18 @@ async def stream_conversation(id: str):
         if not conv:
             yield "data: {\"error\": \"Not found\"}\n\n"
             return
+            
+        analyzer = RiskAnalyzer()
         
         for msg in conv.get("messages", []):
             await asyncio.sleep(1)
+            
+            scores = get_mock_nlp_scores(msg.get("text", ""))
+            analysis = analyzer.analyze(scores)
+            
+            msg.update(scores)
+            msg.update(analysis)
+            
             yield f"data: {json.dumps(msg)}\n\n"
         
         yield "event: end\ndata: {}\n\n"
