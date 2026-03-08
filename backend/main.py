@@ -12,7 +12,7 @@ import PIL.Image
 import io
 import httpx
 from elevenlabs.client import ElevenLabs
-from analytics.stats_engine import RiskAnalyzer, get_mock_nlp_scores
+from analytics.stats_engine import RiskAnalyzer
 
 class Settings(BaseSettings):
     mongodb_uri: str = "mongodb://localhost:27017"
@@ -147,7 +147,17 @@ async def stream_conversation(id: str):
         for msg in conv.get("messages", []):
             await asyncio.sleep(1)
             
-            scores = get_mock_nlp_scores(msg.get("text", ""))
+            text_to_analyze = msg.get("text", "")
+            full_prompt = f"{SYSTEM_PROMPT_AUDIO}\n\nTranscript:\n{text_to_analyze}"
+            
+            try:
+                response = await analysis_model.generate_content_async(full_prompt)
+                result = json.loads(response.text)
+                scores = result.get("analysis", {})
+            except Exception as e:
+                print(f"Error calling Gemini in stream: {e}")
+                scores = {}
+                
             analysis = analyzer.analyze(scores)
             
             msg.update(scores)
@@ -202,6 +212,13 @@ async def transcribe_audio(file: UploadFile = File(...)):
                "text": transcript
             }
         ]
+
+        # Pass live Gemini scores through RiskAnalyzer
+        analyzer = RiskAnalyzer()
+        analysis_scores = analyzer.analyze(result.get("analysis", {}))
+        if "analysis" not in result:
+            result["analysis"] = {}
+        result["analysis"].update(analysis_scores)
 
         return result
     except Exception as e:

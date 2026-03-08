@@ -3,9 +3,10 @@ export interface Message {
   sender: string;
   text: string;
   timestamp: string;
+  toxicity_score?: number;
+  control_score?: number;
   gaslighting_score?: number;
-  isolation_score?: number;
-  threat_score?: number;
+  overall_risk_score?: number;
   z_score?: number;
   signal_detected?: boolean;
 }

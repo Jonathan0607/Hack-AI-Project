@@ -591,9 +591,13 @@ export default function HavenDashboard() {
                                   <div className={`max-w-[85%] rounded-2xl p-3 md:p-4 text-sm shadow-md backdrop-blur-sm ${isSelf
                                       ? 'bg-[#F9F8F4] border border-[#2A4B6E]/40 text-[#1E3A5F] rounded-tr-sm'
                                       : 'bg-[#1E3A5F]/40 border border-[#2A4B6E] text-[#F9F8F4] rounded-tl-sm'
-                                    }`}>
-                                    <div className="text-[10px] opacity-70 mb-1 font-medium tracking-wider uppercase">
+                                    } ${analysisResult.analysis.signal_detected ? 'border-2 border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.4)] relative overflow-hidden' : ''}`}>
+                                    {analysisResult.analysis.signal_detected && (
+                                       <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-red-500 via-rose-500 to-red-500"></div>
+                                    )}
+                                    <div className={`text-[10px] mb-1 font-medium tracking-wider uppercase ${analysisResult.analysis.signal_detected ? 'text-red-500 font-bold opacity-100' : 'opacity-70'}`}>
                                       {msg.sender === 'speaker' ? 'TRANSCRIBED AUDIO' : msg.sender}
+                                      {analysisResult.analysis.signal_detected && ' • ALERT'}
                                     </div>
                                     <p className="leading-relaxed">{msg.text}</p>
                                   </div>

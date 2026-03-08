@@ -7,9 +7,10 @@ def test_risk_analyzer_spike_detection():
     # Send 5 low score messages
     for i in range(5):
         scores = {
-            "gaslighting_score": 0.1,
-            "isolation_score": 0.15,
-            "threat_score": 0.2
+            "toxicity_score": 1,
+            "control_score": 2,
+            "gaslighting_score": 1,
+            "overall_risk_score": 1
         }
         result = analyzer.analyze(scores)
         assert result["z_score"] < 2.0
@@ -17,9 +18,10 @@ def test_risk_analyzer_spike_detection():
 
     # Send a 6th massive spike message
     spike_scores = {
-        "gaslighting_score": 0.9,
-        "isolation_score": 0.85,
-        "threat_score": 0.95
+        "toxicity_score": 9,
+        "control_score": 8,
+        "gaslighting_score": 9,
+        "overall_risk_score": 9
     }
     result = analyzer.analyze(spike_scores)
     
@@ -32,9 +34,10 @@ def test_risk_analyzer_single_message_edge_case():
     analyzer = RiskAnalyzer()
     
     scores = {
-        "gaslighting_score": 0.5,
-        "isolation_score": 0.5,
-        "threat_score": 0.5
+        "toxicity_score": 5,
+        "control_score": 5,
+        "gaslighting_score": 5,
+        "overall_risk_score": 5
     }
     
     # This should not raise an exception

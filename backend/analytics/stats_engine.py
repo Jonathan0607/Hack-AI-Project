@@ -28,16 +28,16 @@ class StreamEWMA:
 class RiskAnalyzer:
     def __init__(self):
         self.trackers = {
+            "toxicity_score": StreamEWMA(),
+            "control_score": StreamEWMA(),
             "gaslighting_score": StreamEWMA(),
-            "isolation_score": StreamEWMA(),
-            "threat_score": StreamEWMA(),
         }
         
-    def analyze(self, scores: Dict[str, float]) -> Dict[str, Any]:
+    def analyze(self, scores: Dict[str, Any]) -> Dict[str, Any]:
         max_z = 0.0
         
-        for key in ["gaslighting_score", "isolation_score", "threat_score"]:
-            val = scores.get(key, 0.0)
+        for key in ["toxicity_score", "control_score", "gaslighting_score"]:
+            val = float(scores.get(key, 0.0))
             z = self.trackers[key].update(val)
             if z > max_z:
                 max_z = z
@@ -46,22 +46,4 @@ class RiskAnalyzer:
         return {
             "z_score": max_z,
             "signal_detected": signal_detected
-        }
-
-def get_mock_nlp_scores(text: str) -> Dict[str, float]:
-    trigger_words = ["crazy", "always", "never", "nobody", "wrong", "fault", "leave", "hurt"]
-    text_lower = text.lower()
-    is_spike = random.random() < 0.1 or any(word in text_lower for word in trigger_words)
-    
-    if is_spike:
-        return {
-            "gaslighting_score": random.uniform(0.8, 1.0),
-            "isolation_score": random.uniform(0.8, 1.0),
-            "threat_score": random.uniform(0.8, 1.0),
-        }
-    else:
-        return {
-            "gaslighting_score": random.uniform(0.1, 0.4),
-            "isolation_score": random.uniform(0.1, 0.4),
-            "threat_score": random.uniform(0.1, 0.4),
         }

@@ -9,9 +9,10 @@ class Message(BaseModel):
     timestamp: datetime
     
     # NLP & ML Scores
-    gaslighting_score: Optional[float] = None
-    isolation_score: Optional[float] = None
-    threat_score: Optional[float] = None
+    toxicity_score: int = 0
+    control_score: int = 0
+    gaslighting_score: int = 0
+    overall_risk_score: int = 0
     z_score: Optional[float] = None
     signal_detected: Optional[bool] = False
 
