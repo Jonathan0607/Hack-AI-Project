@@ -50,6 +50,12 @@ export default function HavenDashboard() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const endOfChatRef = useRef<HTMLDivElement>(null);
 
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
   useEffect(() => {
     if (endOfChatRef.current) {
       endOfChatRef.current.scrollIntoView({ behavior: "smooth" });
@@ -125,9 +131,22 @@ export default function HavenDashboard() {
       if (!res.ok) throw new Error("Failed to analyze image");
 
       const data = await res.json();
-      setAnalysisResult(data);
+      if (data.error) {
+        showToast("Network latency. Retrying analysis...");
+        setAnalysisResult({
+          extracted_text: [{ sender: "system", text: "Analysis unavailable due to network latency." }],
+          analysis: data
+        });
+      } else {
+        setAnalysisResult(data);
+      }
     } catch (error) {
       console.error("Error analyzing screenshot:", error);
+      showToast("Network latency. Retrying analysis...");
+      setAnalysisResult({
+        extracted_text: [{ sender: "system", text: "Analysis unavailable due to network timeout." }],
+        analysis: { error: "API Timeout", toxicity_score: 0, control_score: 0, gaslighting_score: 0, overall_risk_score: 0, signal_detected: false, z_score: 0 }
+      });
     } finally {
       setIsAnalyzing(false);
     }
@@ -184,9 +203,22 @@ export default function HavenDashboard() {
       if (!res.ok) throw new Error("Failed to transcribe and analyze audio");
 
       const data = await res.json();
-      setAnalysisResult(data);
+      if (data.error) {
+        showToast("Network latency. Retrying analysis...");
+        setAnalysisResult({
+          extracted_text: [{ sender: "system", text: "Transcription unavailable due to network latency." }],
+          analysis: data
+        });
+      } else {
+        setAnalysisResult(data);
+      }
     } catch (error) {
       console.error("Error analyzing audio:", error);
+      showToast("Network latency. Retrying analysis...");
+      setAnalysisResult({
+        extracted_text: [{ sender: "system", text: "Transcription unavailable due to network timeout." }],
+        analysis: { error: "API Timeout", toxicity_score: 0, control_score: 0, gaslighting_score: 0, overall_risk_score: 0, signal_detected: false, z_score: 0 }
+      });
     } finally {
       setIsAnalyzing(false);
     }
@@ -368,7 +400,7 @@ export default function HavenDashboard() {
                         <div className={`max-w-[75%] rounded-2xl p-4 md:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-all duration-300 ${isPartner
                             ? 'bg-[#1E3A5F]/40 border border-[#2A4B6E] text-[#F9F8F4] rounded-tl-sm'
                             : 'bg-[#F9F8F4] border border-[#2A4B6E]/40 text-[#1E3A5F] rounded-tr-sm'
-                          } ${msg.signal_detected ? 'border-2 border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.4)] relative overflow-hidden' : ''}`}>
+                          } ${msg.signal_detected ? '!border-[4px] !border-red-500 !bg-red-500/20 shadow-[0_0_35px_rgba(239,68,68,0.7)] relative overflow-hidden' : ''}`}>
                           {msg.signal_detected && (
                             <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-red-500 via-rose-500 to-red-500"></div>
                           )}
@@ -591,7 +623,7 @@ export default function HavenDashboard() {
                                   <div className={`max-w-[85%] rounded-2xl p-3 md:p-4 text-sm shadow-md backdrop-blur-sm ${isSelf
                                       ? 'bg-[#F9F8F4] border border-[#2A4B6E]/40 text-[#1E3A5F] rounded-tr-sm'
                                       : 'bg-[#1E3A5F]/40 border border-[#2A4B6E] text-[#F9F8F4] rounded-tl-sm'
-                                    } ${analysisResult.analysis.signal_detected ? 'border-2 border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.4)] relative overflow-hidden' : ''}`}>
+                                    } ${analysisResult.analysis.signal_detected ? '!border-[4px] !border-red-500 !bg-red-500/20 shadow-[0_0_35px_rgba(239,68,68,0.7)] relative overflow-hidden' : ''}`}>
                                     {analysisResult.analysis.signal_detected && (
                                        <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-red-500 via-rose-500 to-red-500"></div>
                                     )}
@@ -733,6 +765,19 @@ export default function HavenDashboard() {
         background: #475569;
       }
     `}} />
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-6 right-6 bg-[#1A2E44] text-amber-400 px-6 py-4 rounded-xl shadow-2xl border border-amber-500/30 z-50 flex items-center gap-3 backdrop-blur-md"
+          >
+            <AlertCircle className="w-5 h-5" />
+            <span className="font-semibold tracking-wide">{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
