@@ -1,71 +1,124 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from 'framer-motion';
-<<<<<<< HEAD
-import { AlertCircle, CheckCircle2, MessageSquare, Play, Upload, FileImage, Loader2, Info, Mic, Square, Send, User, Bot } from 'lucide-react';
+import {
+  Shield, EyeOff, Lock, Server, Activity, ArrowRight, Zap, Globe,
+  AlertCircle, CheckCircle2, MessageSquare, Play, Upload, FileImage,
+  Loader2, Info, Mic, Square, Send, User, Bot, Phone, PhoneForwarded,
+  BarChart3, Users, Network, Clock, HelpCircle, UserPlus
+} from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
 import { Conversation, Message } from '../types';
-=======
-import { AlertCircle, CheckCircle2, MessageSquare, Play, Upload, FileImage, Loader2, Info, Mic, Square, Send, User, Bot, Phone, PhoneForwarded } from 'lucide-react';
->>>>>>> main
 
-const getRiskColor = (score: number) => {
-  if (score >= 0.8 || score >= 8) return 'text-red-500 bg-red-500/10 border-red-500/20';
-  if (score >= 0.5 || score >= 5) return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
-  return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
-};
+// Define interfaces for better type safety
+interface HistoricalDataItem {
+  _id: string;
+  contact_name?: string;
+  relationship_type?: string;
+  analysis?: {
+    partner_name?: string;
+    overall_risk_score: number;
+    // Add other analysis properties if known
+  };
+  // Add other properties of historical data items if known
+}
 
-const getRiskIcon = (score: number) => {
-  if (score >= 0.8 || score >= 8) return <img src="/logo.png" alt="Logo" className="w-5 h-5 text-red-500" />;
-  if (score >= 0.5 || score >= 5) return <AlertCircle className="w-5 h-5 text-amber-500" />;
-  return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
-};
-
-const getProgressBarColor = (score: number) => {
-  if (score >= 8) return 'bg-red-500';
-  if (score >= 5) return 'bg-amber-500';
-  return 'bg-emerald-500';
-};
+interface ContactListItem {
+  name: string;
+  relationship: string;
+  totalScore: number;
+  count: number;
+  highestScore: number;
+}
 
 export default function HavenDashboard() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const router = useRouter();
+
+  // State from HavenDashboard
+  const [conversations, setConversations] = useState<any[]>([]);
   const [activeThread, setActiveThread] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
-  // Unified State Modules
-  const [activeTab, setActiveTab] = useState<'live' | 'scan' | 'voice' | 'sts'>('live');
+  const [activeTab, setActiveTab] = useState<'live' | 'scan' | 'voice' | 'sts' | 'insights' | 'contacts'>('live');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any | null>(null);
 
-  // Scan specific states
+  // Insights State
+  const [historicalData, setHistoricalData] = useState<any[]>([]);
+  const [statsData, setStatsData] = useState<any>(null);
+
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Voice specific states
+  // Derive unique contacts from historical data
+  const contactList = Object.entries(
+    historicalData.reduce((acc: any, curr: any) => {
+      const name = curr.contact_name || curr.analysis?.partner_name || "Unknown";
+      if (!acc[name]) {
+        acc[name] = {
+          name,
+          relationship: curr.relationship_type || "Other",
+          totalScore: 0,
+          count: 0,
+          highestScore: 0
+        };
+      }
+      acc[name].totalScore += curr.analysis.overall_risk_score;
+      acc[name].count += 1;
+      acc[name].highestScore = Math.max(acc[name].highestScore, curr.analysis.overall_risk_score);
+      return acc;
+    }, {})
+  ).map(([_, val]: any) => val).sort((a, b) => b.highestScore - a.highestScore);
+
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
 
-  // Chat specific states
   const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
   const endOfChatRef = useRef<HTMLDivElement>(null);
 
-<<<<<<< HEAD
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (message: string) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(null), 4000);
   };
-=======
+
   // STS specific states
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isCalling, setIsCalling] = useState(false);
   const [callSid, setCallSid] = useState<string | null>(null);
->>>>>>> main
+
+  // Advanced Feature States
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{ type: 'scan' | 'voice', data?: any } | null>(null);
+  const [contactInfo, setContactInfo] = useState({ name: '', relationship: 'Other' });
+  const [reflectionInput, setReflectionInput] = useState('');
+  const [isSavingReflection, setIsSavingReflection] = useState(false);
+
+  const getRiskColor = (score: number) => {
+    if (score >= 0.8 || score >= 8) return 'text-red-500 bg-red-500/10 border-red-500/20';
+    if (score >= 0.5 || score >= 5) return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+    return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+  };
+
+  const getRiskIcon = (score: number) => {
+    if (score >= 0.8 || score >= 8) return <img src="/logo.png" alt="Logo" className="w-5 h-5 text-red-500" />;
+    if (score >= 0.5 || score >= 5) return <AlertCircle className="w-5 h-5 text-amber-500" />;
+    return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
+  };
+
+  const getProgressBarColor = (score: number) => {
+    if (score >= 8) return 'bg-red-500';
+    if (score >= 5) return 'bg-amber-500';
+    return 'bg-emerald-500';
+  };
 
   useEffect(() => {
     if (endOfChatRef.current) {
@@ -73,13 +126,31 @@ export default function HavenDashboard() {
     }
   }, [chatHistory]);
 
-  useEffect(() => {
+  const refreshData = () => {
     const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    fetch(`${BASE_URL}/conversations`)
+
+    // Fetch historical timeline data (oldest→newest for chart)
+    fetch(`${BASE_URL}/analyses`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
       .then(res => res.json())
-      .then(data => setConversations(data))
+      .then(data => setHistoricalData(Array.isArray(data) ? [...data].reverse() : []))
+      .catch(err => console.error("Error fetching historical data:", err));
+
+    // Fetch aggregate statistics
+    fetch(`${BASE_URL}/stats`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+      .then(res => res.json())
+      .then(data => setStatsData(data))
+      .catch(err => console.error("Error fetching stats:", err));
+
+    // Fetch live feed threads
+    fetch(`${BASE_URL}/conversations`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+      .then(res => res.json())
+      .then(data => setConversations(Array.isArray(data) ? data : []))
       .catch(err => console.error("Error fetching conversations:", err));
-  }, []);
+  };
+
+  // Load on mount and whenever the active tab changes
+  useEffect(() => { refreshData(); }, [activeTab]);
+
 
   useEffect(() => {
     if (endOfMessagesRef.current) {
@@ -121,19 +192,26 @@ export default function HavenDashboard() {
       const file = e.target.files[0];
       setSelectedImage(file);
       setPreviewUrl(URL.createObjectURL(file));
-      setAnalysisResult(null); // Reset previous analysis
-      setChatHistory([]); // Reset chat
+      setAnalysisResult(null);
+      setChatHistory([]);
     }
   };
 
-  const handleAnalyzeImage = async () => {
-    if (!selectedImage) return;
+  const initiateAnalysis = (type: 'scan' | 'voice', data?: any) => {
+    setPendingAction({ type, data });
+    setShowContactModal(true);
+  };
 
+  const handleAnalyzeImage = async (cName?: string, cRel?: string) => {
+    if (!selectedImage) return;
     setIsAnalyzing(true);
     setAnalysisResult(null);
+    setChatHistory([]);
 
     const formData = new FormData();
     formData.append('file', selectedImage);
+    formData.append('contact_name', cName || contactInfo.name || "Unknown");
+    formData.append('relationship_type', cRel || contactInfo.relationship || "Unknown");
 
     try {
       const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -145,31 +223,39 @@ export default function HavenDashboard() {
       if (!res.ok) throw new Error("Failed to analyze image");
 
       const data = await res.json();
-      if (data.error) {
-        showToast("Network latency. Retrying analysis...");
-        setAnalysisResult({
-          extracted_text: [{ sender: "system", text: "Analysis unavailable due to network latency." }],
-          analysis: data
-        });
-      } else {
-        setAnalysisResult(data);
-      }
+      setAnalysisResult(data);
     } catch (error) {
       console.error("Error analyzing screenshot:", error);
-      showToast("Network latency. Retrying analysis...");
-      setAnalysisResult({
-        extracted_text: [{ sender: "system", text: "Analysis unavailable due to network timeout." }],
-        analysis: { error: "API Timeout", toxicity_score: 0, control_score: 0, gaslighting_score: 0, overall_risk_score: 0, signal_detected: false, z_score: 0 }
-      });
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  // Voice Recording Functions
+  const handleSaveReflection = async () => {
+    if (!analysisResult?._id || !reflectionInput.trim()) return;
+    setIsSavingReflection(true);
+    try {
+      const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${BASE_URL}/analyses/${analysisResult._id}/reflection`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: reflectionInput }),
+      });
+      if (res.ok) {
+        setAnalysisResult((prev: any) => ({ ...prev, user_reflection: reflectionInput }));
+        setReflectionInput('');
+        alert("Reflection saved securely.");
+      }
+    } catch (error) {
+      console.error("Error saving reflection:", error);
+    } finally {
+      setIsSavingReflection(false);
+    }
+  };
+
   const startRecording = async () => {
     setAnalysisResult(null);
-    setChatHistory([]); // Reset chat
+    setChatHistory([]);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -181,9 +267,7 @@ export default function HavenDashboard() {
       recorder.onstop = () => {
         const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
         audioChunks.current = [];
-        handleAnalyzeAudio(audioBlob);
-
-        // Stop all tracks to release the mic
+        initiateAnalysis('voice', audioBlob); // Show modal before analysis
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -203,10 +287,15 @@ export default function HavenDashboard() {
     }
   };
 
-  const handleAnalyzeAudio = async (audioBlob: Blob) => {
+  const handleAnalyzeAudio = async (audioBlob: Blob | File, cName?: string, cRel?: string) => {
     setIsAnalyzing(true);
+    setAudioError(null);
+    // Determine filename — use original if uploaded file, fallback to webm for recorded blobs
+    const fileName = (audioBlob instanceof File && audioBlob.name) ? audioBlob.name : 'audio.webm';
     const formData = new FormData();
-    formData.append('file', audioBlob, 'audio.webm');
+    formData.append('file', audioBlob, fileName);
+    formData.append('contact_name', cName || contactInfo.name || "Unknown");
+    formData.append('relationship_type', cRel || contactInfo.relationship || "Unknown");
 
     try {
       const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -215,25 +304,16 @@ export default function HavenDashboard() {
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Failed to transcribe and analyze audio");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+        throw new Error(err.detail || 'Failed to analyze audio');
+      }
 
       const data = await res.json();
-      if (data.error) {
-        showToast("Network latency. Retrying analysis...");
-        setAnalysisResult({
-          extracted_text: [{ sender: "system", text: "Transcription unavailable due to network latency." }],
-          analysis: data
-        });
-      } else {
-        setAnalysisResult(data);
-      }
-    } catch (error) {
+      setAnalysisResult(data);
+    } catch (error: any) {
       console.error("Error analyzing audio:", error);
-      showToast("Network latency. Retrying analysis...");
-      setAnalysisResult({
-        extracted_text: [{ sender: "system", text: "Transcription unavailable due to network timeout." }],
-        analysis: { error: "API Timeout", toxicity_score: 0, control_score: 0, gaslighting_score: 0, overall_risk_score: 0, signal_detected: false, z_score: 0 }
-      });
+      setAudioError(error.message || 'Analysis failed. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -244,7 +324,7 @@ export default function HavenDashboard() {
       const file = e.target.files[0];
       setAnalysisResult(null);
       setChatHistory([]);
-      handleAnalyzeAudio(file);
+      initiateAnalysis('voice', file);
     }
   };
 
@@ -298,664 +378,764 @@ export default function HavenDashboard() {
       setCallSid(data.call_sid);
     } catch (error) {
       console.error("Error initiating call:", error);
-      alert("Failed to initiate call. Check console for details.");
-    } finally {
+      alert("Call failed. Check console for details.");
       setIsCalling(false);
     }
   };
 
   return (
-    <div className="flex h-screen bg-[#5A9C8D] text-[#F9F8F4] overflow-hidden font-sans selection:bg-[#5A9C8D]/30">
+    <div className="min-h-screen bg-[#0F223D] font-sans text-white selection:bg-[#5A9C8D]/50 cursor-default">
+      {/* Decorative Grid Background */}
+      <div className="absolute inset-0 bg-[#1E3A5F] opacity-20 mix-blend-screen pointer-events-none" style={{ backgroundImage: 'linear-gradient(#5A9C8D 1px, transparent 1px), linear-gradient(90deg, #5A9C8D 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0F223D]/80 to-[#0F223D] pointer-events-none"></div>
 
-      {/* Sidebar */}
-      <div className="w-80 border-r border-[#2A4B6E] bg-[#1E3A5F]/90 backdrop-blur-xl flex flex-col z-20">
-        <div className="p-5 border-b border-[#2A4B6E]">
-          <h1 className="text-xl font-bold flex items-center gap-2 text-[#F9F8F4] tracking-tight">
-            <img src="/logo.png" alt="Logo" className="w-6 h-6 text-[#2A4B6E] drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
-            Project Haven
-          </h1>
-          <p className="text-xs text-[#CDE0D9] mt-1.5 font-medium">Real-time Conversation Analysis</p>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="flex flex-col p-3 gap-2 border-b border-[#2A4B6E] bg-[#1E3A5F]/60">
-          <button
-            onClick={() => setActiveTab('live')}
-            className={`flex items-center justify-start gap-3 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${activeTab === 'live'
-                ? 'bg-[#F9F8F4]/20 text-[#F9F8F4] border border-[#F9F8F4]/30 shadow-[0_0_15px_rgba(90,156,141,0.1)]'
-                : 'text-[#CDE0D9] hover:bg-[#E5E4E0]/40/60 hover:text-[#F9F8F4] border border-transparent'
-              }`}
-          >
-            <Play className="w-4 h-4 ml-1" /> Threat Stream
-          </button>
-          <button
-            onClick={() => { setActiveTab('scan'); setAnalysisResult(null); }}
-            className={`flex items-center justify-start gap-3 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${activeTab === 'scan'
-                ? 'bg-[#F9F8F4]/20 text-[#F9F8F4] border border-[#F9F8F4]/30 shadow-[0_0_15px_rgba(99,102,241,0.1)]'
-                : 'text-[#CDE0D9] hover:bg-[#E5E4E0]/40/60 hover:text-[#F9F8F4] border border-transparent'
-              }`}
-          >
-            <Upload className="w-4 h-4 ml-1" /> Image Scan
-          </button>
-          <button
-            onClick={() => { setActiveTab('voice'); setAnalysisResult(null); }}
-            className={`flex items-center justify-start gap-3 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${activeTab === 'voice'
-                ? 'bg-[#F9F8F4]/20 text-[#F9F8F4] border border-[#F9F8F4]/30 shadow-[0_0_15px_rgba(99,102,241,0.1)]'
-                : 'text-[#CDE0D9] hover:bg-[#E5E4E0]/40/60 hover:text-[#F9F8F4] border border-transparent'
-              }`}
-          >
-            <Mic className="w-4 h-4 ml-1" /> Voice Analysis
-          </button>
-          <button
-            onClick={() => { setActiveTab('sts'); setAnalysisResult(null); }}
-            className={`flex items-center justify-start gap-3 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${activeTab === 'sts'
-                ? 'bg-[#F9F8F4]/20 text-[#F9F8F4] border border-[#F9F8F4]/30 shadow-[0_0_15px_rgba(99,102,241,0.1)]'
-                : 'text-[#CDE0D9] hover:bg-[#E5E4E0]/40/60 hover:text-[#F9F8F4] border border-transparent'
-              }`}
-          >
-            <Phone className="w-4 h-4 ml-1" /> STS Call
-          </button>
-        </div>
-
-        {activeTab === 'live' && (
-          <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
-            {conversations.map((conv) => (
-              <div
-                key={conv._id}
-                onClick={() => startReplay(conv.thread_id)}
-                className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-300 ${activeThread === conv.thread_id
-                    ? 'bg-[#1E3A5F]/40 border-[#2A4B6E]/40 shadow-[0_0_20px_rgba(99,102,241,0.15)] scale-[1.02]'
-                    : 'bg-[#1E3A5F]/70 border-[#2A4B6E] hover:border-[#2A4B6E] hover:bg-[#E5E4E0]/40/60'
-                  }`}
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <span className="font-mono text-xs text-[#F9F8F4] font-medium">{conv.thread_id}</span>
-                  <span className={`px-2 py-1 rounded text-xs font-bold border flex items-center gap-1.5 shadow-inner ${getRiskColor(conv.risk_score)}`}>
-                    {getRiskIcon(conv.risk_score)}
-                    {(conv.risk_score * 100).toFixed(0)}%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center text-xs text-[#CDE0D9] gap-1.5 font-medium bg-[#5A9C8D]/50 px-2 py-1 rounded">
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span className="tracking-wide">{conv.type.toUpperCase()}</span>
-                  </div>
-                  {activeThread === conv.thread_id && isStreaming && (
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#5A9C8D]"></span>
-                    </span>
-                  )}
-                </div>
+      {/* Navigation */}
+      <nav className="relative z-50 border-b border-[#2A4B6E] bg-[#0F223D]/80 backdrop-blur-xl">
+        <div className="max-w-[1700px] mx-auto px-6 lg:px-10">
+          <div className="flex justify-between h-20 items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#1E3A5F] rounded-xl flex items-center justify-center border border-[#5A9C8D]/30 shadow-[0_0_15px_rgba(90,156,141,0.2)]">
+                <img src="/logo.png" alt="Logo" className="w-6 h-6 brightness-0 invert" />
               </div>
-            ))}
-          </div>
-        )}
-
-        {activeTab === 'scan' && (
-          <div className="flex-1 p-5 text-center flex flex-col items-center justify-center text-[#CDE0D9]">
-            <Upload className="w-12 h-12 mb-3 opacity-20" />
-            <p className="text-sm px-4">Upload screenshots of suspicious messages for instant DSM-aligned abuse detection.</p>
-          </div>
-        )}
-
-        {activeTab === 'voice' && (
-          <div className="flex-1 p-5 text-center flex flex-col items-center justify-center text-[#CDE0D9]">
-            <Mic className="w-12 h-12 mb-3 opacity-20" />
-            <p className="text-sm px-4">Record spoken interactions directly. ElevenLabs transcription layered with Gemini analysis.</p>
-          </div>
-        )}
-
-        {activeTab === 'sts' && (
-          <div className="flex-1 p-5 text-center flex flex-col items-center justify-center text-[#CDE0D9]">
-            <PhoneForwarded className="w-12 h-12 mb-3 opacity-20" />
-            <p className="text-sm px-4">Initiate a real-time call with ElevenLabs Speech-to-Speech voice transformation.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Main View */}
-      <div className="flex-1 flex flex-col bg-[#1E3A5F]/50 relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#5A9C8D] via-[#4A8577] to-[#5A9C8D]">
-
-        {/* Subtle grid background */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-overlay pointer-events-none"></div>
-
-        {activeTab === 'live' && (
-          activeThread ? (
-            <>
-              <div className="h-16 border-b border-[#2A4B6E] flex items-center px-8 justify-between bg-[#1E3A5F]/70 backdrop-blur-xl z-10 sticky top-0">
-                <div className="flex items-center gap-4">
-                  <h2 className="font-semibold text-lg text-[#F9F8F4] tracking-tight">Feed: <span className="font-mono text-[#5A9C8D]">{activeThread}</span></h2>
-                  {isStreaming && (
-                    <span className="flex items-center gap-2 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                      </span>
-                      LIVE SYNC
-                    </span>
-                  )}
-                  {messages.length > 0 && messages[messages.length - 1].z_score !== undefined && (
-                    <span className="ml-4 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 font-mono text-sm tracking-widest shadow-inner">
-                      RISK VELOCITY: {messages[messages.length - 1].z_score?.toFixed(2)}
-                    </span>
-                  )}
-                </div>
-                <button
-                  onClick={() => startReplay(activeThread)}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F]/40 hover:bg-slate-700 transition-all rounded-lg border border-[#2A4B6E] text-sm font-semibold tracking-wide shadow-sm hover:shadow-md"
-                >
-                  <Play className="w-4 h-4" /> RESTART FEED
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-5 custom-scrollbar pb-24">
-                <AnimatePresence>
-                  {messages.map((msg, idx) => {
-                    const isPartner = msg.sender === 'partner';
-                    return (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ duration: 0.4, type: "spring", bounce: 0.4 }}
-                        key={idx}
-                        className={`flex ${isPartner ? 'justify-start' : 'justify-end'}`}
-                      >
-                        <div className={`max-w-[75%] rounded-2xl p-4 md:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-all duration-300 ${isPartner
-                            ? 'bg-[#1E3A5F]/40 border border-[#2A4B6E] text-[#F9F8F4] rounded-tl-sm'
-                            : 'bg-[#F9F8F4] border border-[#2A4B6E]/40 text-[#1E3A5F] rounded-tr-sm'
-                          } ${msg.signal_detected ? '!border-[4px] !border-red-500 !bg-red-500/20 shadow-[0_0_35px_rgba(239,68,68,0.7)] relative overflow-hidden' : ''}`}>
-                          {msg.signal_detected && (
-                            <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-red-500 via-rose-500 to-red-500"></div>
-                          )}
-                          <div className="text-xs opacity-70 mb-2 flex justify-between items-center gap-6 font-medium">
-                            <span className={`uppercase tracking-wider opacity-90 ${msg.signal_detected ? 'text-red-500 font-bold' : ''}`}>
-                              {msg.sender.replace('_', ' ')}
-                              {msg.signal_detected && ' • ALERT'}
-                            </span>
-                            <span className="font-mono opacity-80">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                          </div>
-                          <p className="leading-relaxed text-[15px] sm:text-base">{msg.text}</p>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-                <div ref={endOfMessagesRef} className="h-4" />
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-[#CDE0D9] bg-gradient-to-b from-transparent to-slate-900/20">
-              <div className="w-24 h-24 rounded-full bg-[#1E3A5F] flex items-center justify-center mb-6 shadow-xl border border-[#2A4B6E]">
-                <img src="/logo.png" alt="Logo" className="w-10 h-10 opacity-40 text-[#5A9C8D]" />
-              </div>
-              <h2 className="text-2xl font-bold text-[#F9F8F4] mb-2 tracking-tight">No Feed Selected</h2>
-              <p className="text-[#CDE0D9]">Select an active conversation module from the Haven console to begin analysis.</p>
+              <span className="font-extrabold text-2xl tracking-tight text-white flex items-center gap-2">
+                Project Haven <span className="text-xs font-mono uppercase tracking-widest text-[#5A9C8D] px-2 py-1 rounded bg-[#5A9C8D]/10 border border-[#5A9C8D]/20 hidden sm:block">Beta</span>
+              </span>
             </div>
-          )
-        )}
+            <div className="hidden md:flex items-center space-x-10">
+              <a href="#" className="text-slate-300 hover:text-white font-semibold transition-colors text-sm uppercase tracking-wider">Infrastructure</a>
+              <a href="#" className="text-slate-300 hover:text-white font-semibold transition-colors text-sm uppercase tracking-wider">Capabilities</a>
+              <a href="#" className="text-slate-300 hover:text-white font-semibold transition-colors text-sm uppercase tracking-wider">Documentation</a>
+              <button
+                onClick={() => router.push('/login')}
+                className="flex items-center gap-2 bg-[#5A9C8D] hover:bg-[#4A8577] text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-[0_4px_15px_rgba(90,156,141,0.3)] hover:shadow-[0_6px_25px_rgba(90,156,141,0.4)] hover:-translate-y-0.5"
+              >
+                Access Portal <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
 
-        {/* Scan / Voice / STS Layout Structure */}
-        {(activeTab === 'scan' || activeTab === 'voice' || activeTab === 'sts') && (
-          <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-            <div className="max-w-5xl mx-auto space-y-8">
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-40 overflow-hidden z-10 flex flex-col items-center justify-center min-h-[70vh]">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#5A9C8D]/20 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#1E3A5F]/40 rounded-full blur-[150px] pointer-events-none"></div>
 
-              <div className="border-b border-[#2A4B6E] pb-6 flex items-center justify-between">
-                <div>
-                  <h2 className="text-3xl font-bold tracking-tight text-[#F9F8F4] flex items-center gap-3">
-                    {activeTab === 'scan' ? <Upload className="w-8 h-8 text-[#2A4B6E]" /> : activeTab === 'voice' ? <Mic className="w-8 h-8 text-[#2A4B6E]" /> : <Phone className="w-8 h-8 text-[#2A4B6E]" />}
-                    {activeTab === 'scan' ? 'Forensic Image Scanner' : activeTab === 'voice' ? 'Live Voice Analysis' : 'Speech-to-Speech Calling'}
-                  </h2>
-                  <p className="text-[#CDE0D9] mt-2 text-lg">
-                    {activeTab === 'scan' ? 'Upload conversational receipts for automated extraction and DSM-aligned behavioral analysis.' : activeTab === 'voice' ? 'Speak directly into the microphone for real-time transcription and DSM-aligned behavioral evaluation.' : 'Initiate an encrypted phone call and transform your voice in real-time using ElevenLabs AI.'}
-                  </p>
-                </div>
+        <div className="max-w-[1200px] mx-auto px-6 text-center relative z-20">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#5A9C8D]/30 bg-[#5A9C8D]/10 text-[#5A9C8D] font-mono text-sm mb-8 font-bold shadow-inner">
+            <Activity className="w-4 h-4 animate-pulse" /> Live Analysis Engine Active
+          </div>
+          <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter mb-8 leading-[1.1]">
+            Unmask <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5A9C8D] to-[#88C5B7]">Digital Deception.</span>
+          </h1>
+          <p className="max-w-3xl mx-auto text-xl md:text-2xl text-slate-300 mb-12 leading-relaxed font-medium">
+            Project Haven is an advanced conversational forensics tool. We utilize cutting-edge LLMs and acoustic modeling to detect adversarial behaviors in real-time communications.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-6">
+            <button
+              onClick={() => router.push('/login')}
+              className="bg-white text-[#1E3A5F] px-10 py-5 rounded-2xl font-extrabold text-lg flex items-center justify-center gap-3 transition-all hover:bg-slate-100 hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:scale-105"
+            >
+              Initialize Node <ArrowRight className="w-5 h-5" />
+            </button>
+            <button className="bg-[#1E3A5F]/50 border-2 border-[#2A4B6E] text-white px-10 py-5 rounded-2xl font-bold text-lg transition-all hover:bg-[#1E3A5F] hover:border-[#5A9C8D]/50 flex items-center justify-center gap-3 backdrop-blur-md">
+              <Globe className="w-5 h-5 opacity-70" /> View Architecture
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Control Console (Dashboard Integration) */}
+      <section className="py-20 relative z-10 bg-[#0A1628] border-t border-[#2A4B6E]">
+        <div className="max-w-[1700px] mx-auto px-6 lg:px-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold text-white mb-4 tracking-tight">Interactive Analysis Console</h2>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto">Select a protocol below to begin conversational diagnostics.</p>
+          </div>
+
+          <div className="bg-[#1E3A5F]/20 border border-[#2A4B6E] rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[700px]">
+            {/* Dashboard Sidebar */}
+            <div className="w-80 bg-[#1E3A5F]/20 backdrop-blur-xl border-r border-[#2A4B6E] flex flex-col p-6 rounded-l-3xl">
+              <h3 className="text-xs font-bold text-[#5A9C8D] uppercase tracking-[0.2em] mb-4">Command Protocols</h3>
+              <div className="space-y-2">
+                {[
+                  { id: 'live', label: 'Live Pulse', icon: Activity },
+                  { id: 'scan', label: 'Deep Scan', icon: Shield },
+                  { id: 'voice', label: 'Voice Ingestion', icon: Mic },
+                  { id: 'sts', label: 'STS Transmission', icon: Phone },
+                  { id: 'insights', label: 'Forensic Insights', icon: BarChart3 },
+                  { id: 'contacts', label: 'Contact Vectors', icon: Users },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => { setActiveTab(tab.id as any); setAnalysisResult(null); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === tab.id
+                      ? 'bg-[#5A9C8D] text-white shadow-lg'
+                      : 'text-slate-400 hover:bg-[#1E3A5F]/60 hover:text-white'
+                      }`}
+                  >
+                    <tab.icon className="w-4 h-4" /> {tab.label}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                {/* Input Column */}
-                <div className="space-y-6">
-
-                  {activeTab === 'scan' && (
-                    <>
-                      {/* Upload Dropzone */}
-                      <div className="relative group cursor-pointer" onClick={() => document.getElementById('imageUpload')?.click()}>
-                        <div className="absolute -inset-1 bg-gradient-to-r from-[#2A4B6E] to-[#5A9C8D] rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
-                        <div className="relative border-2 border-dashed border-[#2A4B6E] bg-[#1E3A5F]/80 hover:bg-[#E5E4E0]/40/60 backdrop-blur-sm rounded-xl p-10 flex flex-col items-center justify-center transition-all duration-300 min-h-[300px]">
-                          <input
-                            type="file"
-                            id="imageUpload"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleImageSelect}
-                          />
-
-                          {previewUrl ? (
-                            <div className="relative w-full rounded-lg overflow-hidden border border-[#2A4B6E] shadow-2xl">
-                              <img src={previewUrl} alt="Preview" className="w-full h-auto object-contain max-h-[400px] bg-black/50" />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                                <span className="flex items-center gap-2 bg-[#F9F8F4] text-[#F9F8F4] px-4 py-2 rounded-lg font-medium shadow-lg">
-                                  <Upload className="w-4 h-4" /> Replace Image
-                                </span>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="text-center">
-                              <div className="w-20 h-20 bg-[#1E3A5F]/40 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#2A4B6E] group-hover:scale-110 group-hover:border-[#2A4B6E]/40 transition-all duration-300 shadow-xl">
-                                <FileImage className="w-10 h-10 text-[#CDE0D9] group-hover:text-[#5A9C8D] transition-colors" />
-                              </div>
-                              <h3 className="text-xl font-semibold text-[#F9F8F4] mb-2">Drag & Drop or Click</h3>
-                              <p className="text-[#CDE0D9] text-sm">Supports PNG, JPG, JPEG (Max 5MB)</p>
-                            </div>
-                          )}
-                        </div>
+            {activeTab === 'live' && (
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                {conversations.length > 0 ? conversations.map((conv) => (
+                  <div
+                    key={conv.thread_id}
+                    onClick={() => startReplay(conv.thread_id)}
+                    className={`p-4 rounded-xl border cursor-pointer transition-all ${activeThread === conv.thread_id
+                      ? 'bg-[#5A9C8D]/20 border-[#5A9C8D] shadow-inner'
+                      : 'bg-[#1E3A5F]/40 border-[#2A4B6E] hover:border-slate-500'
+                      }`}
+                  >
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-mono text-[10px] text-[#5A9C8D]">{conv.thread_id.slice(0, 12)}...</span>
+                      <div className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getRiskColor(conv.risk_score)}`}>
+                        {(conv.risk_score * 100).toFixed(0)}%
                       </div>
+                    </div>
+                    <div className="text-xs text-slate-300 truncate font-medium">Type: {conv.type.toUpperCase()}</div>
+                  </div>
+                )) : (
+                  <div className="text-center py-10 text-slate-500 text-xs">No active threads found.</div>
+                )}
+              </div>
+            )}
 
-                      <button
-                        onClick={handleAnalyzeImage}
-                        disabled={!selectedImage || isAnalyzing}
-                        className={`w-full py-4 rounded-xl flex items-center justify-center gap-3 font-semibold text-lg transition-all duration-300 shadow-lg ${!selectedImage || isAnalyzing
-                            ? 'bg-[#1E3A5F]/40 text-[#CDE0D9] cursor-not-allowed border border-[#2A4B6E]'
-                            : 'bg-[#F9F8F4] hover:bg-[#E5E4E0] text-[#1E3A5F] border border-[#2A4B6E] hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]'
-                          }`}
+            {/* Main Stage */}
+            <div className="flex-1 bg-[#0F223D]/40 relative flex flex-col p-8">
+              {activeTab === 'live' && (
+                activeThread ? (
+                  <div className="flex-1 flex flex-col">
+                    <div className="flex justify-between items-center mb-6 border-b border-[#2A4B6E] pb-4">
+                      <h3 className="font-bold flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-[#5A9C8D]" />
+                        Thread: <span className="font-mono text-[#5A9C8D]">{activeThread}</span>
+                      </h3>
+                      {isStreaming && <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1.5 animate-pulse"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> LIVE</span>}
+                    </div>
+                    <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar max-h-[500px]">
+                      <AnimatePresence>
+                        {messages.map((msg, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: msg.sender === 'partner' ? -10 : 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className={`flex ${msg.sender === 'partner' ? 'justify-start' : 'justify-end'}`}
+                          >
+                            <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.sender === 'partner'
+                              ? 'bg-[#1E3A5F] border border-[#2A4B6E] text-slate-100'
+                              : 'bg-[#5A9C8D] text-white shadow-md'
+                              }`}>
+                              <p>{msg.text}</p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                      <div ref={endOfMessagesRef} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-center">
+                    <Activity className="w-12 h-12 mb-4 opacity-20" />
+                    <p>Select a thread from the sidebar to visualize the dialogue stream.</p>
+                  </div>
+                )
+              )}
+
+              {activeTab === 'scan' && (
+                <div className="flex-1 flex flex-col">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                      <div
+                        className="border-2 border-dashed border-[#2A4B6E] rounded-2xl p-10 flex flex-col items-center justify-center bg-[#1E3A5F]/20 hover:bg-[#1E3A5F]/40 transition-all cursor-pointer min-h-[300px]"
+                        onClick={() => document.getElementById('imageUpload')?.click()}
                       >
-                        {isAnalyzing ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Analyzing via Gemini Engine...
-                          </>
+                        <input type="file" id="imageUpload" className="hidden" accept="image/*" onChange={handleImageSelect} />
+                        {previewUrl ? (
+                          <img src={previewUrl} alt="Preview" className="w-full max-h-60 object-contain rounded-lg shadow-lg" />
                         ) : (
                           <>
-                            <img src="/logo.png" alt="Logo" className="w-5 h-5" />
-                            Initiate Deep Scan
+                            <FileImage className="w-12 h-12 text-slate-600 mb-4" />
+                            <p className="text-sm font-semibold text-slate-400">Click to upload screenshot</p>
                           </>
                         )}
+                      </div>
+                      <button
+                        onClick={() => initiateAnalysis('scan')}
+                        disabled={!selectedImage || isAnalyzing}
+                        className="w-full py-4 bg-[#5A9C8D] hover:bg-[#4A8577] disabled:opacity-50 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-[0_4px_15px_rgba(90,156,141,0.2)]"
+                      >
+                        {isAnalyzing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
+                        {isAnalyzing ? "Processing Analysis..." : "Invoke Deep Scan"}
                       </button>
-                    </>
-                  )}
-
-                  {activeTab === 'voice' && (
-                    <div className="space-y-6">
-                      <div className="flex flex-col items-center justify-center pt-8 pb-12 w-full bg-[#1E3A5F]/90 border border-[#2A4B6E] rounded-2xl backdrop-blur-xl shadow-2xl space-y-12">
-                        <div className="relative flex flex-col sm:flex-row items-center justify-center gap-6 w-full px-8">
-                          {/* Record Button */}
-                          <div className="relative">
-                            {isRecording && (
-                              <>
-                                <span className="animate-ping absolute -inset-4 rounded-full bg-red-500/20"></span>
-                                <span className="animate-ping absolute -inset-8 rounded-full bg-red-500/10 delay-150"></span>
-                              </>
-                            )}
-                            <button
-                              onClick={isRecording ? stopRecording : startRecording}
-                              disabled={isAnalyzing}
-                              className={`relative w-32 h-32 rounded-full flex items-center justify-center flex-col gap-2 transition-all duration-500 shadow-2xl ${isRecording
-                                  ? 'bg-[#1E3A5F] border-2 border-red-500 hover:bg-[#E5E4E0]/40'
-                                  : isAnalyzing
-                                    ? 'bg-[#1E3A5F]/40 border border-[#2A4B6E] cursor-wait text-[#CDE0D9]/40'
-                                    : 'bg-gradient-to-tr from-[#2A4B6E] to-[#5A9C8D] hover:scale-105 border border-[#F9F8F4]/30 hover:shadow-[0_0_40px_rgba(99,102,241,0.6)]'
-                                }`}
-                            >
-                              {isAnalyzing ? (
-                                <Loader2 className="w-8 h-8 text-[#CDE0D9] animate-spin" />
-                              ) : isRecording ? (
-                                <>
-                                  <Square className="w-8 h-8 text-red-500 fill-red-500/20" />
-                                  <span className="text-red-400 font-bold tracking-widest text-xs uppercase">Stop</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Mic className="w-10 h-10 text-[#F9F8F4]" />
-                                  <span className="text-[#F9F8F4] font-semibold tracking-wider text-xs mt-1">RECORD</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-                          
-                          <div className="text-[#CDE0D9] font-bold text-lg opacity-50 px-2">OR</div>
-
-                          {/* Upload File Button */}
-                          <div className="relative">
-                            <input
-                              type="file"
-                              id="audioUpload"
-                              className="hidden"
-                              accept="audio/*"
-                              onChange={handleAudioFileSelect}
-                            />
-                            <button
-                              onClick={() => document.getElementById('audioUpload')?.click()}
-                              disabled={isAnalyzing || isRecording}
-                              className={`relative w-32 h-32 rounded-full flex items-center justify-center flex-col gap-2 transition-all duration-500 shadow-xl ${isAnalyzing || isRecording
-                                    ? 'bg-[#1E3A5F]/40 border border-[#2A4B6E] cursor-not-allowed text-[#CDE0D9]/40'
-                                    : 'bg-[#1E3A5F]/60 hover:bg-[#1E3A5F]/90 border-2 border-dashed border-[#5A9C8D] hover:border-[#F9F8F4] text-[#F9F8F4]'
-                                }`}
-                            >
-                                <>
-                                  <Upload className="w-8 h-8 opacity-80" />
-                                  <span className="font-semibold tracking-wider text-[10px] mt-1 text-center px-2 opacity-80">UPLOAD<br/>AUDIO</span>
-                                </>
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="text-center px-6">
-                          <h3 className={`text-xl font-bold mb-2 transition-colors ${isRecording ? 'text-red-400' : 'text-[#F9F8F4]'}`}>
-                            {isAnalyzing ? 'Transcribing & Analyzing...' : isRecording ? 'Acoustic Capture Active...' : 'Ready for Audio Input'}
-                          </h3>
-                          <p className="text-[#CDE0D9] text-sm">
-                            {isRecording ? 'Speak clearly into your microphone.' : 'Record your voice or upload an audio file for analysis.'}
-                          </p>
-                        </div>
-                      </div>
                     </div>
-                  )}
 
-                </div>
-
-                {/* Results Column */}
-                <div className="bg-[#1E3A5F]/90 border border-[#2A4B6E] rounded-2xl p-6 lg:p-8 backdrop-blur-xl shadow-2xl min-h-[500px] flex flex-col relative overflow-hidden">
-
-                  {/* Decorative background flair */}
-                  <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[#5A9C8D]/10 rounded-full blur-3xl pointer-events-none"></div>
-
-                  {!analysisResult && !isAnalyzing && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-[#CDE0D9] relative z-10 p-4">
-                      <Info className="w-16 h-16 opacity-20 mb-4" />
-                      <h3 className="text-xl font-medium text-[#F9F8F4] mb-2">Awaiting Input</h3>
-                      <p className="text-center max-w-sm">
-                        {activeTab === 'scan' ? 'Upload a screenshot and initiate a scan to view extracted text and abuse diagnostics.' : 'Record a spoken statement to process through the ElevenLabs transcription engine and DSM analytics.'}
-                      </p>
-                    </div>
-                  )}
-
-                  {isAnalyzing && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-[#5A9C8D] relative z-10">
-                      <Loader2 className="w-16 h-16 animate-spin mb-6 opacity-80" />
-                      <h3 className="text-xl font-semibold animate-pulse">Running Diagnostic Models...</h3>
-                      <p className="text-[#CDE0D9] text-sm mt-2">Checking against DSM-V behavioral definitions</p>
-                    </div>
-                  )}
-
-                  {analysisResult && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="space-y-8 relative z-10"
-                    >
-                      {/* Overall Score Header */}
-                      <div className={`p-6 rounded-xl border flex items-center justify-between shadow-lg backdrop-blur-md ${getRiskColor(analysisResult.analysis.overall_risk_score)}`}>
-                        <div>
-                          <p className="text-sm font-bold uppercase tracking-widest opacity-80 mb-1">Diagnostic Threat Level</p>
-                          <h3 className="text-3xl font-black flex items-center gap-3">
+                    <div className="bg-[#1E3A5F]/40 border border-[#2A4B6E] rounded-2xl p-6 min-h-[400px]">
+                      {analysisResult ? (
+                        <div className="space-y-6">
+                          <div className={`p-4 rounded-xl border flex items-center justify-between ${getRiskColor(analysisResult.analysis.overall_risk_score)}`}>
+                            <div>
+                              <span className="text-[10px] uppercase font-bold tracking-widest opacity-70">Risk Assessment</span>
+                              <h4 className="text-2xl font-black">{analysisResult.analysis.overall_risk_score}/10</h4>
+                            </div>
                             {getRiskIcon(analysisResult.analysis.overall_risk_score)}
-                            {analysisResult.analysis.overall_risk_score} <span className="text-xl opacity-60 font-medium">/ 10</span>
-                          </h3>
-                        </div>
-                        <div className="w-20 h-20 rounded-full bg-black/20 flex items-center justify-center border border-white/10 backdrop-blur-xl">
-                          <span className="text-2xl font-bold">{analysisResult.analysis.overall_risk_score >= 8 ? 'HIGH' : analysisResult.analysis.overall_risk_score >= 5 ? 'ELEV' : 'LOW'}</span>
-                        </div>
-                      </div>
+                          </div>
+                          <div className="bg-[#0F223D] p-4 rounded-xl border border-[#2A4B6E]">
+                            <span className="text-[10px] uppercase font-bold text-slate-500 mb-2 block">Extracted Context</span>
+                            <div className="text-xs space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                              {Array.isArray(analysisResult.extracted_text) ? analysisResult.extracted_text.map((t: any, i: number) => (
+                                <div key={i} className="border-b border-slate-800 pb-1 last:border-0">
+                                  <span className="font-bold text-[#5A9C8D]">{t.sender}:</span> {t.text}
+                                </div>
+                              )) : analysisResult.extracted_text}
+                            </div>
+                          </div>
 
-                      {/* Extracted Text */}
-                      <div className="bg-[#5A9C8D]/80 rounded-xl p-5 border border-[#2A4B6E] shadow-inner">
-                        <h4 className="text-xs font-bold text-[#CDE0D9] uppercase tracking-widest mb-3 flex items-center gap-2">
-                          <MessageSquare className="w-3.5 h-3.5" /> Transcription Log
-                        </h4>
-
-                        <div className="bg-[#1E3A5F] p-4 rounded-lg border border-[#2A4B6E]/50 max-h-80 overflow-y-auto custom-scrollbar flex flex-col gap-3">
-                          {Array.isArray(analysisResult.extracted_text) ? (
-                            analysisResult.extracted_text.map((msg: any, idx: number) => {
-                              const isSelf = msg.sender === 'self' || msg.sender === 'speaker';
-                              return (
-                                <motion.div
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ duration: 0.3, delay: idx * 0.1 }}
-                                  key={idx}
-                                  className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}
+                          {/* Reflection Section */}
+                          <div className="bg-[#5A9C8D]/5 border border-[#5A9C8D]/20 p-5 rounded-2xl space-y-4">
+                            <div className="flex items-center gap-2 text-xs font-bold text-[#5A9C8D] uppercase tracking-widest">
+                              <MessageSquare className="w-3.5 h-3.5" /> Reflection Pulse
+                            </div>
+                            {analysisResult.user_reflection ? (
+                              <div className="text-sm italic text-slate-300 bg-[#0F223D]/50 p-3 rounded-xl border border-[#5A9C8D]/10">
+                                &ldquo;{analysisResult.user_reflection}&rdquo;
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <textarea
+                                  className="w-full bg-[#0F223D] border border-[#2A4B6E] rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#5A9C8D]/40 min-h-[80px]"
+                                  placeholder="How does this behavior make you feel? Why do you think they did this?"
+                                  value={reflectionInput}
+                                  onChange={(e) => setReflectionInput(e.target.value)}
+                                />
+                                <button
+                                  onClick={handleSaveReflection}
+                                  disabled={isSavingReflection || !reflectionInput.trim()}
+                                  className="w-full py-2.5 bg-[#5A9C8D]/20 hover:bg-[#5A9C8D]/40 text-[#5A9C8D] rounded-xl text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50"
                                 >
-                                  <div className={`max-w-[85%] rounded-2xl p-3 md:p-4 text-sm shadow-md backdrop-blur-sm ${isSelf
-                                      ? 'bg-[#F9F8F4] border border-[#2A4B6E]/40 text-[#1E3A5F] rounded-tr-sm'
-                                      : 'bg-[#1E3A5F]/40 border border-[#2A4B6E] text-[#F9F8F4] rounded-tl-sm'
-                                    } ${analysisResult.analysis.signal_detected ? '!border-[4px] !border-red-500 !bg-red-500/20 shadow-[0_0_35px_rgba(239,68,68,0.7)] relative overflow-hidden' : ''}`}>
-                                    {analysisResult.analysis.signal_detected && (
-                                       <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-red-500 via-rose-500 to-red-500"></div>
-                                    )}
-                                    <div className={`text-[10px] mb-1 font-medium tracking-wider uppercase ${analysisResult.analysis.signal_detected ? 'text-red-500 font-bold opacity-100' : 'opacity-70'}`}>
-                                      {msg.sender === 'speaker' ? 'TRANSCRIBED AUDIO' : msg.sender}
-                                      {analysisResult.analysis.signal_detected && ' • ALERT'}
-                                    </div>
-                                    <p className="leading-relaxed">{msg.text}</p>
-                                  </div>
-                                </motion.div>
-                              );
-                            })
-                          ) : (
-                            <div className="font-mono text-sm text-[#F9F8F4] whitespace-pre-wrap">
-                              {analysisResult.extracted_text}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Metrics */}
-                      <div className="space-y-5">
-                        <h4 className="text-xs font-bold text-[#CDE0D9] uppercase tracking-widest mb-2">Behavioral Metrics</h4>
-
-                        {[
-                          { label: 'Toxicity', score: analysisResult.analysis.toxicity_score },
-                          { label: 'Coercive Control', score: analysisResult.analysis.control_score },
-                          { label: 'Gaslighting / Invalidation', score: analysisResult.analysis.gaslighting_score },
-                        ].map((metric) => (
-                          <div key={metric.label}>
-                            <div className="flex justify-between items-end mb-2">
-                              <span className="font-semibold text-[#F9F8F4]">{metric.label}</span>
-                              <span className="font-mono text-sm font-bold opacity-80">{metric.score}/10</span>
-                            </div>
-                            <div className="h-2.5 w-full bg-[#1E3A5F]/40 rounded-full overflow-hidden shadow-inner">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${(metric.score / 10) * 100}%` }}
-                                transition={{ duration: 1, ease: "easeOut" }}
-                                className={`h-full rounded-full ${getProgressBarColor(metric.score)}`}
-                              ></motion.div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {activeTab === 'sts' && (
-                    <div className="flex flex-col items-center justify-center pt-8 pb-12 w-full bg-[#1E3A5F]/90 border border-[#2A4B6E] rounded-2xl backdrop-blur-xl shadow-2xl space-y-8 p-10">
-                      <div className="w-full max-w-md space-y-6">
-                        <div className="space-y-2">
-                          <label className="text-[#CDE0D9] text-sm font-semibold uppercase tracking-wider">Recipient Phone Number</label>
-                          <div className="relative">
-                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#5A9C8D]" />
-                            <input
-                              type="tel"
-                              value={phoneNumber}
-                              onChange={(e) => setPhoneNumber(e.target.value)}
-                              placeholder="+1 234 567 8900"
-                              className="w-full bg-[#5A9C8D]/20 border border-[#2A4B6E] rounded-xl py-4 pl-12 pr-4 text-[#F9F8F4] placeholder:text-[#CDE0D9]/40 focus:outline-none focus:ring-2 focus:ring-[#5A9C8D]/50 transition-all text-lg"
-                            />
+                                  {isSavingReflection ? "Saving Reflection..." : "Log Reflection Securely"}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
-
-                        <button
-                          onClick={handleInitiateCall}
-                          disabled={!phoneNumber || isCalling || !!callSid}
-                          className={`w-full py-5 rounded-xl flex items-center justify-center gap-3 font-bold text-xl transition-all duration-300 shadow-2xl ${
-                            !phoneNumber || isCalling || !!callSid
-                              ? 'bg-[#1E3A5F]/40 text-[#CDE0D9] cursor-not-allowed border border-[#2A4B6E]'
-                              : 'bg-gradient-to-tr from-[#2A4B6E] to-[#5A9C8D] text-[#F9F8F4] border border-[#F9F8F4]/20 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(90,156,141,0.4)]'
-                          }`}
-                        >
-                          {isCalling ? (
-                            <>
-                              <Loader2 className="w-6 h-6 animate-spin" />
-                              INITIATING CALL...
-                            </>
-                          ) : callSid ? (
-                            <>
-                              <PhoneForwarded className="w-6 h-6 animate-pulse" />
-                              CALL IN PROGRESS
-                            </>
-                          ) : (
-                            <>
-                              <Phone className="w-6 h-6" />
-                              START STS CALL
-                            </>
-                          )}
-                        </button>
-
-                        {callSid && (
-                          <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex flex-col items-center gap-2"
-                          >
-                            <span className="text-emerald-400 font-bold flex items-center gap-2 text-sm">
-                              <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                              </span>
-                              CALL ACTIVE
-                            </span>
-                            <span className="text-xs text-[#CDE0D9]/60 font-mono">SID: {callSid}</span>
-                            <button 
-                              onClick={() => { setCallSid(null); setPhoneNumber(''); }}
-                              className="mt-2 text-xs text-red-500 hover:text-red-400 font-bold underline"
-                            >
-                              TERMINATE UI SESSION
-                            </button>
-                          </motion.div>
-                        )}
-                        
-                        <div className="pt-4 border-t border-[#2A4B6E] mt-4">
-                          <p className="text-xs text-[#CDE0D9]/60 leading-relaxed italic text-center">
-                            By initiating this call, your microphone input will be streamed to ElevenLabs via an encrypted socket and transformed with the selected Voice ID before being routed to the recipient.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {analysisResult && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="space-y-8 relative z-10 flex flex-col h-full"
-                    >
-                      {activeTab !== 'voice' && (
-                        <div className="bg-[#5A9C8D]/5 rounded-xl p-5 border border-[#5A9C8D]/20">
-                          <h4 className="text-xs font-bold text-[#5A9C8D] uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <Info className="w-3.5 h-3.5" /> DSM Analysis & Rationale
-                          </h4>
-                          <p className="text-[#F9F8F4] text-sm leading-relaxed whitespace-pre-line">
-                            {analysisResult.analysis.explanation}
-                          </p>
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-slate-500 text-sm italic">
+                          Awaiting scan initialization...
                         </div>
                       )}
-                    </motion.div>
-                  )}
-                </div>
-              </div>
-
-              {/* Full Width Follow-Up Chat */}
-              {analysisResult && (
-                <div className="mt-8 bg-[#1E3A5F]/90 border border-[#2A4B6E] rounded-xl overflow-hidden flex flex-col shadow-2xl backdrop-blur-xl max-w-5xl mx-auto">
-                  <div className="bg-[#1E3A5F]/95 p-4 border-b border-[#2A4B6E] flex items-center gap-3">
-                    <Bot className="w-5 h-5 text-[#5A9C8D]" />
-                    <h4 className="font-semibold text-[#F9F8F4]">Follow-Up Analysis</h4>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#5A9C8D]/10 text-[#5A9C8D] border border-[#5A9C8D]/20 ml-auto hidden sm:block">Grounded via Google Search</span>
+                    </div>
                   </div>
-
-                  <div className="flex-1 p-4 overflow-y-auto max-h-[400px] min-h-[250px] custom-scrollbar flex flex-col gap-4">
-                    {chatHistory.length === 0 ? (
-                      <div className="text-center text-[#CDE0D9] text-sm py-8 my-auto">
-                        Have questions about this analysis or need resources?<br />Ask me anything below.
-                      </div>
-                    ) : (
-                      chatHistory.map((chat, idx) => (
-                        <div key={idx} className={`flex gap-3 ${chat.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${chat.role === 'user' ? 'bg-[#5A9C8D] text-[#F9F8F4]' : 'bg-[#1E3A5F]/40 text-[#5A9C8D] border border-[#2A4B6E]'}`}>
-                            {chat.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                          </div>
-                          <div className={`max-w-[80%] rounded-2xl p-4 text-[15px] leading-relaxed ${chat.role === 'user' ? 'bg-[#F9F8F4] text-[#1E3A5F] rounded-tr-sm' : 'bg-[#1E3A5F]/40 text-[#F9F8F4] border border-[#2A4B6E] rounded-tl-sm'}`}>
-                            <div className="whitespace-pre-wrap">{chat.content}</div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                    {isChatLoading && (
-                      <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#1E3A5F]/40 text-[#5A9C8D] border border-[#2A4B6E] flex items-center justify-center shrink-0">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        </div>
-                        <div className="max-w-[80%] rounded-2xl p-4 bg-[#1E3A5F]/40/60 text-[#CDE0D9] border border-[#2A4B6E] rounded-tl-sm flex gap-1.5 items-center">
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400/60 animate-bounce"></span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400/60 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400/60 animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                        </div>
-                      </div>
-                    )}
-                    <div ref={endOfChatRef} className="h-2" />
-                  </div>
-
-                  <form onSubmit={handleSendChatMessage} className="p-3 bg-[#1E3A5F] border-t border-[#2A4B6E] flex gap-2">
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="Ask about resources, DSM definitions, or safety plans..."
-                      className="flex-1 bg-[#5A9C8D] border border-[#2A4B6E] rounded-lg px-4 py-3 text-sm text-[#F9F8F4] focus:outline-none focus:border-[#2A4B6E] focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-[#CDE0D9]"
-                      disabled={isChatLoading}
-                    />
-                    <button
-                      type="submit"
-                      disabled={!chatInput.trim() || isChatLoading}
-                      className="bg-[#F9F8F4] hover:bg-[#E5E4E0] text-[#1E3A5F] p-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                    >
-                      {isChatLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                    </button>
-                  </form>
                 </div>
               )}
 
+              {activeTab === 'voice' && (
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <div className="w-full max-w-md bg-[#1E3A5F]/40 border border-[#2A4B6E] rounded-3xl p-10 text-center space-y-8">
+                    <div className="relative mx-auto w-32 h-32">
+                      {isRecording && <span className="absolute inset-0 rounded-full bg-red-500/20 animate-ping"></span>}
+                      {isAnalyzing && <span className="absolute inset-0 rounded-full bg-[#5A9C8D]/20 animate-ping"></span>}
+                      <button
+                        onClick={isRecording ? stopRecording : startRecording}
+                        disabled={isAnalyzing}
+                        className={`w-full h-full rounded-full flex items-center justify-center shadow-2xl transition-all disabled:opacity-50 ${isRecording ? 'bg-red-500 scale-110' : 'bg-[#5A9C8D] hover:scale-105'
+                          }`}
+                      >
+                        {isAnalyzing
+                          ? <Loader2 className="w-10 h-10 text-white animate-spin" />
+                          : isRecording
+                            ? <Square className="w-8 h-8 text-white" />
+                            : <Mic className="w-10 h-10 text-white" />}
+                      </button>
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-bold">
+                        {isAnalyzing ? "Analyzing Audio..." : isRecording ? "Recording Audio..." : "Voice Ingestion Pulse"}
+                      </h4>
+                      <p className="text-sm text-slate-400 mt-2">
+                        {isAnalyzing
+                          ? "Uploading to forensic analysis engine. This may take 10-20 seconds..."
+                          : "Speak into the sensor for immediate forensic transcription."}
+                      </p>
+                    </div>
+                    {audioError && (
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-xs text-red-400 text-left">
+                        <span className="font-bold uppercase tracking-wider block mb-1">Analysis Error</span>
+                        {audioError}
+                      </div>
+                    )}
+                    <input type="file" id="audioUpload" className="hidden" accept="audio/*" onChange={handleAudioFileSelect} />
+                    <button
+                      disabled={isAnalyzing}
+                      onClick={() => document.getElementById('audioUpload')?.click()}
+                      className="text-xs font-bold text-[#5A9C8D] hover:underline uppercase tracking-widest disabled:opacity-40"
+                    >
+                      Or upload audio file
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'sts' && (
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <div className="w-full max-w-lg bg-[#1E3A5F]/40 border border-[#2A4B6E] rounded-3xl p-10 space-y-6">
+                    <div className="text-center mb-6">
+                      <Phone className="w-12 h-12 text-[#5A9C8D] mx-auto mb-4" />
+                      <h4 className="text-xl font-bold">Secure STS Transmission</h4>
+                      <p className="text-sm text-slate-400 mt-2">Proxy your voice through a real-time ElevenLabs filter.</p>
+                    </div>
+                    <div className="space-y-4">
+                      <input
+                        type="tel"
+                        className="w-full bg-[#0F223D] border border-[#2A4B6E] rounded-xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-[#5A9C8D]/40 transition-all"
+                        placeholder="+1 (555) 000-0000"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                      />
+                      <button
+                        onClick={handleInitiateCall}
+                        disabled={!phoneNumber || isCalling}
+                        className="w-full py-4 bg-[#5A9C8D] hover:bg-[#4A8577] rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg disabled:opacity-50"
+                      >
+                        {isCalling ? <Loader2 className="w-5 h-5 animate-spin" /> : <PhoneForwarded className="w-5 h-5" />}
+                        {isCalling ? "Dialing..." : "Initialize Transmission"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'insights' && (
+                <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-8">
+                  <div className="flex justify-between items-center border-b border-[#2A4B6E] pb-4">
+                    <div className="flex items-center gap-3">
+                      <BarChart3 className="w-8 h-8 text-[#5A9C8D]" />
+                      <div>
+                        <h2 className="text-2xl font-bold text-white tracking-tight">Forensic Insights</h2>
+                        <p className="text-sm text-slate-400">Time-series tracking and psychological mapping of ingested logs.</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={refreshData}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] border border-[#2A4B6E] hover:border-[#5A9C8D]/50 rounded-xl text-xs font-bold text-slate-300 uppercase tracking-widest transition-all"
+                    >
+                      <Loader2 className="w-3.5 h-3.5" /> Refresh
+                    </button>
+                  </div>
+
+                  {/* Live summary stat cards */}
+                  <div className="grid grid-cols-3 gap-4">
+                    {[
+                      {
+                        label: "Total Scans",
+                        value: statsData?.total_analyses ?? historicalData.length,
+                        sub: "Forensic ingestions logged",
+                        color: "text-[#5A9C8D]",
+                      },
+                      {
+                        label: "Avg Risk Score",
+                        value: statsData?.avg_risk_score != null
+                          ? `${statsData.avg_risk_score.toFixed(1)}/10`
+                          : historicalData.length > 0
+                            ? `${(historicalData.reduce((s: number, d: any) => s + (d.analysis?.overall_risk_score ?? 0), 0) / historicalData.length).toFixed(1)}/10`
+                            : "—",
+                        sub: "Across all ingestions",
+                        color: statsData?.avg_risk_score >= 7 ? "text-red-400" : statsData?.avg_risk_score >= 4 ? "text-amber-400" : "text-emerald-400",
+                      },
+                      {
+                        label: "Top Threat Tag",
+                        value: statsData?.tag_counts
+                          ? Object.entries(statsData.tag_counts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] ?? "None"
+                          : "—",
+                        sub: statsData?.tag_counts
+                          ? `${Object.entries(statsData.tag_counts).sort((a: any, b: any) => b[1] - a[1])[0]?.[1] ?? 0} occurrences`
+                          : "No data yet",
+                        color: "text-amber-400",
+                      },
+                    ].map((stat, i) => (
+                      <div key={i} className="bg-[#1E3A5F]/30 border border-[#2A4B6E] rounded-2xl p-5 flex flex-col gap-1">
+                        <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">{stat.label}</span>
+                        <span className={`text-3xl font-black ${stat.color} leading-none`}>{stat.value}</span>
+                        <span className="text-xs text-slate-500">{stat.sub}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-8">
+                    {/* Timeline Graph */}
+                    <div className="bg-[#1E3A5F]/20 border border-[#2A4B6E] p-6 rounded-2xl md:col-span-2">
+                      <div className="flex items-center gap-2 mb-6 text-sm font-bold text-slate-300 uppercase tracking-widest">
+                        <Clock className="w-4 h-4 text-[#5A9C8D]" /> Longitudinal Abuse Escalation Tracker
+                      </div>
+                      <div className="h-[300px] w-full">
+                        {historicalData.length > 0 ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={historicalData.map((d: any) => ({
+                              time: new Date(d.timestamp).toLocaleDateString() + ' ' + new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                              score: d.analysis.overall_risk_score,
+                              contact: d.contact_name || 'Unknown',
+                              tags: d.analysis.tags?.join(', ') || 'N/A'
+                            }))}>
+                              <defs>
+                                <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#5A9C8D" stopOpacity={0.5} />
+                                  <stop offset="95%" stopColor="#5A9C8D" stopOpacity={0} />
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#2A4B6E" vertical={false} />
+                              <XAxis dataKey="time" stroke="#CDE0D9" fontSize={10} minTickGap={30} />
+                              <YAxis stroke="#CDE0D9" fontSize={10} domain={[0, 10]} />
+                              <Tooltip
+                                contentStyle={{ backgroundColor: '#0F223D', borderColor: '#2A4B6E', borderRadius: '12px' }}
+                                itemStyle={{ color: '#5A9C8D', fontWeight: 'bold' }}
+                                labelStyle={{ color: '#F9F8F4', marginBottom: '8px' }}
+                                formatter={(val: any, _name: any, props: any) => [
+                                  `${val}/10`,
+                                  `Risk — ${props.payload.contact}`
+                                ]}
+                              />
+                              <Area type="monotone" dataKey="score" stroke="#5A9C8D" strokeWidth={3} fillOpacity={1} fill="url(#colorRisk)" />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="h-full flex items-center justify-center text-slate-500 italic text-sm">No historical data available yet. Please conduct a scan.</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Incident Tags Bar Matrix */}
+                    <div className="bg-[#1E3A5F]/20 border border-[#2A4B6E] p-6 rounded-2xl flex flex-col">
+                      <div className="flex items-center gap-2 mb-6 text-sm font-bold text-slate-300 uppercase tracking-widest">
+                        <Network className="w-4 h-4 text-[#5A9C8D]" /> Identified Incident Groupings
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center">
+                        {statsData && statsData.tag_counts && Object.keys(statsData.tag_counts).length > 0 ? (
+                          <div className="space-y-4 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
+                            {Object.entries(statsData.tag_counts).sort((a: any, b: any) => b[1] - a[1]).map(([tag, count]: any) => (
+                              <div key={tag} className="flex items-center justify-between">
+                                <span className="text-sm text-slate-200 capitalize w-1/3 truncate text-ellipsis">{tag}</span>
+                                <div className="flex-1 mx-4 h-2 bg-[#0F223D] rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full transition-all duration-500 ${count >= 5 ? 'bg-red-500' : count >= 3 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                                    style={{ width: `${Math.min((count / (statsData.total_analyses || 1)) * 100, 100)}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs font-mono bg-[#1E3A5F] px-2 py-1 rounded text-[#5A9C8D] border border-[#2A4B6E] w-10 text-center">{count}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center text-slate-500 italic text-sm">No grouping tags derived yet.</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* High-Risk Contact Vectors */}
+                    <div className="bg-[#1E3A5F]/20 border border-[#2A4B6E] p-6 rounded-2xl flex flex-col">
+                      <div className="flex items-center gap-2 mb-6 text-sm font-bold text-slate-300 uppercase tracking-widest">
+                        <Users className="w-4 h-4 text-[#5A9C8D]" /> High-Risk Contact Vectors
+                      </div>
+                      <div className="flex-1 overflow-y-auto max-h-[250px] custom-scrollbar space-y-3 pr-2">
+                        {contactList.length > 0 ? (
+                          contactList.map((contact: any) => {
+                            const avg = contact.totalScore / contact.count;
+                            return (
+                              <div key={contact.name} className="flex justify-between items-center bg-[#0F223D]/60 p-3 rounded-xl border border-[#2A4B6E]">
+                                <div className="flex flex-col">
+                                  <span className="font-bold text-white uppercase tracking-wide text-sm">{contact.name}</span>
+                                  <span className="text-[10px] text-slate-400 font-mono">{contact.count} incident{contact.count !== 1 ? 's' : ''} · avg {avg.toFixed(1)}/10</span>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                  <span className="text-[10px] uppercase font-bold text-slate-500">Max</span>
+                                  <span className={`font-black ${contact.highestScore >= 7 ? 'text-red-500' : contact.highestScore >= 4 ? 'text-amber-500' : 'text-emerald-500'}`}>{contact.highestScore}/10</span>
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="text-center text-slate-500 italic text-sm mt-10">No contact vectors mapped.</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Safety Support */}
+                    <div className="bg-red-500/10 border border-red-500/30 p-6 rounded-2xl md:col-span-2 flex flex-col md:flex-row gap-6 items-center">
+                      <div className="flex-1 space-y-3">
+                        <h4 className="text-xl font-bold flex items-center gap-2 text-red-500"><HelpCircle className="w-5 h-5" /> Safety & Actionable Support</h4>
+                        <p className="text-sm text-red-200/80 leading-relaxed max-w-2xl bg-black/20 p-3 rounded-lg border border-red-500/20 italic">
+                          Disclosing pattern behaviors does not constitute a formal medical or psychological diagnosis. If you map consistently high-risk behavior traits (like coercive control or gaslighting escalation), please consult physical safety protocols immediately.
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-3 min-w-[250px] w-full md:w-auto">
+                        <a href="https://www.thehotline.org/" target="_blank" rel="noopener noreferrer" className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl text-center text-sm shadow-xl hover:-translate-y-1 transition-all">National Domestic Violence Hotline</a>
+                        <a href="https://www.crisistextline.org/" target="_blank" rel="noopener noreferrer" className="bg-[#1E3A5F] border border-red-500/50 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-xl text-center text-sm shadow-xl hover:-translate-y-1 transition-all">Text HOME to 741741</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+
+              {activeTab === 'contacts' && (
+                <div className="flex-1 flex flex-col">
+                  <div className="flex justify-between items-center mb-6 border-b border-[#2A4B6E] pb-4">
+                    <div>
+                      <h3 className="font-bold flex items-center gap-2 text-lg">
+                        <Users className="w-5 h-5 text-[#5A9C8D]" /> Contact Vectors
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5">{contactList.length} contact{contactList.length !== 1 ? 's' : ''} tracked · {historicalData.length} total incident{historicalData.length !== 1 ? 's' : ''}</p>
+                    </div>
+                    <button
+                      onClick={refreshData}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] border border-[#2A4B6E] hover:border-[#5A9C8D]/50 rounded-xl text-xs font-bold text-slate-300 uppercase tracking-widest transition-all"
+                    >
+                      <Loader2 className="w-3.5 h-3.5" /> Refresh
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-5">
+                    {contactList.length > 0 ? (
+                      contactList.map((contact: any, index: number) => {
+                        const avgRisk = contact.totalScore / contact.count;
+                        // Get the 3 most recent incidents for this contact
+                        const recentIncidents = historicalData
+                          .filter((d: any) => (d.contact_name || d.analysis?.partner_name || 'Unknown') === contact.name)
+                          .slice(-3)
+                          .reverse();
+                        return (
+                          <div key={index} className="bg-[#1E3A5F]/30 border border-[#2A4B6E] p-6 rounded-[2rem] hover:border-[#5A9C8D]/40 transition-all group">
+                            {/* Header row */}
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                              <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-[#0F223D] rounded-2xl flex items-center justify-center border border-[#2A4B6E] group-hover:border-[#5A9C8D]/20 transition-all shrink-0">
+                                  <User className="w-7 h-7 text-[#5A9C8D]" />
+                                </div>
+                                <div className="space-y-1">
+                                  <h4 className="text-xl font-black text-white">{contact.name}</h4>
+                                  <div className="flex items-center gap-2">
+                                    <span className="bg-[#5A9C8D]/10 text-[#5A9C8D] border border-[#5A9C8D]/20 px-3 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-widest">{contact.relationship}</span>
+                                    <span className="text-slate-500 text-[10px]">{contact.count} incident{contact.count !== 1 ? 's' : ''}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              {/* Risk metrics */}
+                              <div className="flex gap-6 items-center">
+                                <div className="flex flex-col items-center">
+                                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">Avg Risk</span>
+                                  <span className={`text-2xl font-black ${getRiskColor(avgRisk).split(' ')[0]}`}>{avgRisk.toFixed(1)}</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">Peak Risk</span>
+                                  <span className={`text-2xl font-black ${getRiskColor(contact.highestScore).split(' ')[0]}`}>{contact.highestScore}/10</span>
+                                </div>
+                                <div className="w-28">
+                                  <div className="h-2 bg-[#0F223D] rounded-full overflow-hidden">
+                                    <div className={`h-full transition-all ${getProgressBarColor(contact.highestScore)}`} style={{ width: `${(contact.highestScore / 10) * 100}%` }} />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Recent incidents */}
+                            {recentIncidents.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-[#2A4B6E]/60 space-y-1.5">
+                                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Recent Incidents</span>
+                                {recentIncidents.map((inc: any, i: number) => (
+                                  <div key={i} className="flex items-center justify-between text-xs bg-[#0F223D]/60 rounded-lg px-3 py-2">
+                                    <span className="text-slate-400 font-mono">{new Date(inc.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                    <div className="flex gap-1 flex-wrap justify-end">
+                                      {(inc.analysis?.tags || []).slice(0, 3).map((tag: string) => (
+                                        <span key={tag} className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold">{tag}</span>
+                                      ))}
+                                      {(!inc.analysis?.tags || inc.analysis.tags.length === 0) && <span className="text-slate-600 text-[10px]">No tags</span>}
+                                    </div>
+                                    <span className={`font-black text-sm ml-3 ${getRiskColor(inc.analysis?.overall_risk_score ?? 0).split(' ')[0]}`}>{inc.analysis?.overall_risk_score ?? 0}/10</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 text-center animate-in fade-in duration-500">
+                        <div className="w-20 h-20 bg-[#1E3A5F]/20 rounded-full flex items-center justify-center mb-6">
+                          <Users className="w-10 h-10 opacity-20" />
+                        </div>
+                        <h4 className="text-lg font-bold text-white mb-2">No Contact Vectors Isolated</h4>
+                        <p className="max-w-[280px] text-sm text-slate-400">Initialize a Deep Scan or Voice Ingestion to begin relationship mapping.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Clinical Psychologist Consultation - inside dashboard */}
+              {analysisResult && (
+                <div className="mt-8 bg-[#1E3A5F]/40 border border-[#2A4B6E] rounded-2xl overflow-hidden flex flex-col">
+                  <div className="p-4 bg-[#1E3A5F]/80 border-b border-[#2A4B6E] flex justify-between items-center">
+                    <h3 className="font-bold flex items-center gap-2 text-sm"><Bot className="w-4 h-4 text-[#5A9C8D]" /> Clinical Psychologist Consultation</h3>
+                    <span className="text-[10px] bg-[#5A9C8D]/20 text-[#5A9C8D] px-2 py-1 rounded font-bold uppercase">Grounded Analysis</span>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div className="bg-[#0F223D]/60 p-4 rounded-xl border border-slate-800 text-sm leading-relaxed text-slate-200 shadow-inner">
+                      {analysisResult.analysis.explanation}
+                    </div>
+
+                    <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                      {chatHistory.map((chat, i) => (
+                        <div key={i} className={`flex gap-3 ${chat.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${chat.role === 'user' ? 'bg-[#5A9C8D]' : 'bg-slate-700'}`}>
+                            {chat.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                          </div>
+                          <div className={`p-3 rounded-2xl text-sm ${chat.role === 'user' ? 'bg-[#5A9C8D] text-white' : 'bg-[#1E3A5F] text-slate-200 border border-[#2A4B6E]'}`}>
+                            {chat.content}
+                          </div>
+                        </div>
+                      ))}
+                      {isChatLoading && <Loader2 className="w-5 h-5 animate-spin text-[#5A9C8D] mx-auto" />}
+                    </div>
+
+                    <form onSubmit={handleSendChatMessage} className="flex gap-3">
+                      <input
+                        type="text"
+                        className="flex-1 bg-[#0F223D] border border-[#2A4B6E] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A9C8D]/40"
+                        placeholder="Ask about resources or safety protocols..."
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                      />
+                      <button type="submit" className="bg-[#5A9C8D] hover:bg-[#4A8577] p-3 rounded-xl shadow-lg transition-all">
+                        <Send className="w-5 h-5" />
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
-      {/* Global styles for custom scrollbar */}
+        </div>
+      </section>
+
+      {/* Infrastructure Core Competencies */}
+      <section className="py-32 relative z-10 bg-[#050B14]">
+        <div className="max-w-[1700px] mx-auto px-6 lg:px-10">
+          <div className="text-center mb-20">
+            <h2 className="text-3xl font-bold text-white mb-4">Underlying Infrastructure</h2>
+            <p className="text-slate-500 max-w-xl mx-auto">Project Haven utilizes a multi-layered analytical stack for high-fidelity communication forensics.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { icon: Shield, title: "Threat Mitigation", desc: "Monitor live communication feeds with latency under 500ms for immediate marker identification." },
+              { icon: Zap, title: "Acoustic Forensics", desc: "Process vocal cadence and tone using localized ingestion layered with deep sentiment mapping." },
+              { icon: Server, title: "Encrypted Pipelines", desc: "Zero-knowledge architecture ensures that sensitive transcripts never touch public storage clusters." },
+            ].map((f, i) => (
+              <div key={i} className="bg-[#1E3A5F]/10 border border-[#2A4B6E] p-8 rounded-3xl hover:border-[#5A9C8D]/50 transition-all">
+                <div className="w-12 h-12 bg-[#0F223D] rounded-xl flex items-center justify-center text-[#5A9C8D] mb-6 border border-[#2A4B6E]">
+                  <f.icon className="w-6 h-6" />
+                </div>
+                <h4 className="text-xl font-bold mb-3">{f.title}</h4>
+                <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-[#050B14] py-12 border-t border-[#2A4B6E] relative z-10">
+        <div className="max-w-[1700px] mx-auto px-6 lg:px-10 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-3">
+            <Lock className="w-5 h-5 text-[#5A9C8D]" />
+            <span className="font-bold tracking-[0.2em] uppercase text-[10px] text-slate-500">Project Haven Security Protocol</span>
+          </div>
+          <div className="text-[10px] font-mono text-slate-600 flex gap-6">
+            <span>SYS.STATUS: <span className="text-emerald-500">OPTIMAL</span></span>
+            <span>Uptime: 99.99%</span>
+            <span>Location: Encrypted Node</span>
+          </div>
+        </div>
+      </footer>
+
+      {/* Global Scrollbar Style */}
       <style dangerouslySetInnerHTML={{
         __html: `
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #334155;
-        border-radius: 10px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #475569;
-      }
-    `}} />
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #5a9c8d; }
+      `}} />
+
+      {/* Contact Metadata Modal */}
       <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-6 right-6 bg-[#1A2E44] text-amber-400 px-6 py-4 rounded-xl shadow-2xl border border-amber-500/30 z-50 flex items-center gap-3 backdrop-blur-md"
-          >
-            <AlertCircle className="w-5 h-5" />
-            <span className="font-semibold tracking-wide">{toastMessage}</span>
-          </motion.div>
+        {showContactModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#1E3A5F] border border-[#5A9C8D]/30 w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl space-y-8"
+            >
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-[#5A9C8D]/10 rounded-2xl flex items-center justify-center mx-auto border border-[#5A9C8D]/30">
+                  <User className="w-8 h-8 text-[#5A9C8D]" />
+                </div>
+                <h3 className="text-2xl font-black text-white">Identify Contact</h3>
+                <p className="text-slate-400 text-sm">Categorize this forensic ingestion for the Longitudinal Tracker.</p>
+              </div>
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 ml-1 tracking-widest">Target Name</label>
+                  <input
+                    type="text"
+                    className="w-full bg-[#0F223D] border border-[#2A4B6E] rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-[#5A9C8D]/40 transition-all font-bold"
+                    placeholder="John Doe"
+                    value={contactInfo.name}
+                    onChange={(e) => setContactInfo(prev => ({ ...prev, name: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 ml-1 tracking-widest">Relationship Vector</label>
+                  <select
+                    className="w-full bg-[#0F223D] border border-[#2A4B6E] rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#5A9C8D]/40 transition-all font-bold appearance-none cursor-pointer"
+                    value={contactInfo.relationship}
+                    onChange={(e) => setContactInfo(prev => ({ ...prev, relationship: e.target.value }))}
+                  >
+                    <option value="Ex-partner">Ex-partner</option>
+                    <option value="Partner">Current Partner</option>
+                    <option value="Family">Family Member</option>
+                    <option value="Colleague">Co-worker / Boss</option>
+                    <option value="Friend">Friend / Peer</option>
+                    <option value="Other">External / Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => { setShowContactModal(false); setPendingAction(null); }}
+                  className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl font-bold transition-all text-sm uppercase tracking-widest"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={!contactInfo.name.trim()}
+                  onClick={() => {
+                    setShowContactModal(false);
+                    if (pendingAction?.type === 'scan') handleAnalyzeImage(contactInfo.name, contactInfo.relationship);
+                    if (pendingAction?.type === 'voice') handleAnalyzeAudio(pendingAction.data, contactInfo.name, contactInfo.relationship);
+                    setPendingAction(null);
+                  }}
+                  className="flex-1 py-4 bg-[#5A9C8D] hover:bg-[#4A8577] text-white rounded-2xl font-bold transition-all shadow-lg shadow-[#5A9C8D]/20 text-sm uppercase tracking-widest disabled:opacity-50"
+                >
+                  Confirm Ingestion
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

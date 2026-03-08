@@ -23,3 +23,18 @@ class Conversation(BaseModel):
     messages: List[Message]
     risk_score: float = 0.0
     type: str = "text"
+
+class AnalysisEntry(BaseModel):
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    source: str
+    extracted_text: list
+    analysis: dict
+    contact_name: Optional[str] = "Unknown"
+    relationship_type: Optional[str] = "Unknown"
+    user_reflection: Optional[str] = None
+    tags: List[str] = []
+
+class ChatRequest(BaseModel):
+    extracted_text: list
+    analysis: dict
+    question: str

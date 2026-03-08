@@ -1,0 +1,1634 @@
+2026-03-08 08:11:41,352 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:16:21,443 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:17:08,252 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:17:46,311 - INFO - DEBUG: Incoming request: POST http://localhost:8000/analyze-screenshot
+2026-03-08 08:17:46,320 - INFO - DEBUG: Analyzing screenshot for contact: John Doe
+2026-03-08 08:17:49,113 - INFO - DEBUG: Gemini raw response length: 699
+2026-03-08 08:17:49,114 - INFO - DEBUG: Response status: 200
+2026-03-08 08:18:08,718 - INFO - DEBUG: Incoming request: POST http://localhost:8000/analyze-screenshot
+2026-03-08 08:18:08,720 - INFO - DEBUG: Analyzing screenshot for contact: John Doe
+2026-03-08 08:18:11,435 - INFO - DEBUG: Gemini raw response length: 735
+2026-03-08 08:18:11,435 - INFO - DEBUG: Response status: 200
+2026-03-08 08:23:44,547 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyze-screenshot
+2026-03-08 08:23:44,618 - INFO - DEBUG: Analyzing screenshot for contact: Aarav
+2026-03-08 08:23:55,792 - INFO - DEBUG: Gemini raw response length: 1428
+2026-03-08 08:23:55,793 - INFO - DEBUG: Response status: 200
+2026-03-08 08:24:32,984 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/transcribe-audio
+2026-03-08 08:24:32,987 - INFO - DEBUG: Transcribing audio for contact: Aarav
+2026-03-08 08:24:33,078 - INFO - HTTP Request: POST https://api.elevenlabs.io/v1/speech-to-text "HTTP/1.1 401 Unauthorized"
+2026-03-08 08:24:33,078 - ERROR - ERROR processing audio: headers: {'date': 'Sun, 08 Mar 2026 13:24:32 GMT', 'server': 'uvicorn', 'content-length': '67', 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, PATCH, OPTIONS, DELETE, GET, PUT', 'access-control-max-age': '600', 'strict-transport-security': 'max-age=1800;', 'x-trace-id': 'de8ab750942568e5d97ae66839170400', 'x-region': 'us-central1', 'via': '1.1 google', 'alt-svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'}, status_code: 401, body: {'detail': {'status': 'invalid_api_key', 'message': 'Invalid API key'}}
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 386, in transcribe_audio
+    transcription_result = elevenlabs_client.speech_to_text.convert(
+         file=audio_stream,
+         model_id="scribe_v1"
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/elevenlabs/speech_to_text/client.py", line 152, in convert
+    _response = self._raw_client.convert(
+        model_id=model_id,
+    ...<19 lines>...
+        request_options=request_options,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/elevenlabs/speech_to_text/raw_client.py", line 191, in convert
+    raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+elevenlabs.core.api_error.ApiError: headers: {'date': 'Sun, 08 Mar 2026 13:24:32 GMT', 'server': 'uvicorn', 'content-length': '67', 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, PATCH, OPTIONS, DELETE, GET, PUT', 'access-control-max-age': '600', 'strict-transport-security': 'max-age=1800;', 'x-trace-id': 'de8ab750942568e5d97ae66839170400', 'x-region': 'us-central1', 'via': '1.1 google', 'alt-svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'}, status_code: 401, body: {'detail': {'status': 'invalid_api_key', 'message': 'Invalid API key'}}
+2026-03-08 08:24:33,080 - INFO - DEBUG: Response status: 500
+2026-03-08 08:26:37,787 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/transcribe-audio
+2026-03-08 08:26:37,787 - INFO - DEBUG: Transcribing audio for contact: Aarav
+2026-03-08 08:26:37,874 - INFO - HTTP Request: POST https://api.elevenlabs.io/v1/speech-to-text "HTTP/1.1 401 Unauthorized"
+2026-03-08 08:26:37,874 - ERROR - ERROR processing audio: headers: {'date': 'Sun, 08 Mar 2026 13:26:37 GMT', 'server': 'uvicorn', 'content-length': '67', 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, PATCH, OPTIONS, DELETE, GET, PUT', 'access-control-max-age': '600', 'strict-transport-security': 'max-age=1800;', 'x-trace-id': 'f84ca189d9b0dc686c1f554fceca1111', 'x-region': 'us-central1', 'via': '1.1 google', 'alt-svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'}, status_code: 401, body: {'detail': {'status': 'invalid_api_key', 'message': 'Invalid API key'}}
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 386, in transcribe_audio
+    transcription_result = elevenlabs_client.speech_to_text.convert(
+         file=audio_stream,
+         model_id="scribe_v1"
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/elevenlabs/speech_to_text/client.py", line 152, in convert
+    _response = self._raw_client.convert(
+        model_id=model_id,
+    ...<19 lines>...
+        request_options=request_options,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/elevenlabs/speech_to_text/raw_client.py", line 191, in convert
+    raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+elevenlabs.core.api_error.ApiError: headers: {'date': 'Sun, 08 Mar 2026 13:26:37 GMT', 'server': 'uvicorn', 'content-length': '67', 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, PATCH, OPTIONS, DELETE, GET, PUT', 'access-control-max-age': '600', 'strict-transport-security': 'max-age=1800;', 'x-trace-id': 'f84ca189d9b0dc686c1f554fceca1111', 'x-region': 'us-central1', 'via': '1.1 google', 'alt-svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'}, status_code: 401, body: {'detail': {'status': 'invalid_api_key', 'message': 'Invalid API key'}}
+2026-03-08 08:26:37,878 - INFO - DEBUG: Response status: 500
+2026-03-08 08:26:47,466 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/transcribe-audio
+2026-03-08 08:26:47,466 - INFO - DEBUG: Transcribing audio for contact: Aarav
+2026-03-08 08:26:47,534 - INFO - HTTP Request: POST https://api.elevenlabs.io/v1/speech-to-text "HTTP/1.1 401 Unauthorized"
+2026-03-08 08:26:47,534 - ERROR - ERROR processing audio: headers: {'date': 'Sun, 08 Mar 2026 13:26:46 GMT', 'server': 'uvicorn', 'content-length': '67', 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, PATCH, OPTIONS, DELETE, GET, PUT', 'access-control-max-age': '600', 'strict-transport-security': 'max-age=1800;', 'x-trace-id': 'f1923c0f3c3ead5f761e06af40e35a5d', 'x-region': 'us-central1', 'via': '1.1 google', 'alt-svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'}, status_code: 401, body: {'detail': {'status': 'invalid_api_key', 'message': 'Invalid API key'}}
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 386, in transcribe_audio
+    transcription_result = elevenlabs_client.speech_to_text.convert(
+         file=audio_stream,
+         model_id="scribe_v1"
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/elevenlabs/speech_to_text/client.py", line 152, in convert
+    _response = self._raw_client.convert(
+        model_id=model_id,
+    ...<19 lines>...
+        request_options=request_options,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/elevenlabs/speech_to_text/raw_client.py", line 191, in convert
+    raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+elevenlabs.core.api_error.ApiError: headers: {'date': 'Sun, 08 Mar 2026 13:26:46 GMT', 'server': 'uvicorn', 'content-length': '67', 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, PATCH, OPTIONS, DELETE, GET, PUT', 'access-control-max-age': '600', 'strict-transport-security': 'max-age=1800;', 'x-trace-id': 'f1923c0f3c3ead5f761e06af40e35a5d', 'x-region': 'us-central1', 'via': '1.1 google', 'alt-svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'}, status_code: 401, body: {'detail': {'status': 'invalid_api_key', 'message': 'Invalid API key'}}
+2026-03-08 08:26:47,535 - INFO - DEBUG: Response status: 500
+2026-03-08 08:27:22,420 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:27:45,925 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/transcribe-audio
+2026-03-08 08:27:45,928 - INFO - DEBUG: Transcribing audio for contact: Aarav
+2026-03-08 08:27:46,014 - INFO - HTTP Request: POST https://api.elevenlabs.io/v1/speech-to-text "HTTP/1.1 401 Unauthorized"
+2026-03-08 08:27:46,015 - ERROR - ERROR processing audio: headers: {'date': 'Sun, 08 Mar 2026 13:27:45 GMT', 'server': 'uvicorn', 'content-length': '67', 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, PATCH, OPTIONS, DELETE, GET, PUT', 'access-control-max-age': '600', 'strict-transport-security': 'max-age=1800;', 'x-trace-id': '3ca713e6b9b458137860a444d5a8c4a7', 'x-region': 'us-central1', 'via': '1.1 google', 'alt-svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'}, status_code: 401, body: {'detail': {'status': 'invalid_api_key', 'message': 'Invalid API key'}}
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 386, in transcribe_audio
+    transcription_result = elevenlabs_client.speech_to_text.convert(
+         file=audio_stream,
+         model_id="scribe_v1"
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/elevenlabs/speech_to_text/client.py", line 152, in convert
+    _response = self._raw_client.convert(
+        model_id=model_id,
+    ...<19 lines>...
+        request_options=request_options,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/elevenlabs/speech_to_text/raw_client.py", line 191, in convert
+    raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+elevenlabs.core.api_error.ApiError: headers: {'date': 'Sun, 08 Mar 2026 13:27:45 GMT', 'server': 'uvicorn', 'content-length': '67', 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, PATCH, OPTIONS, DELETE, GET, PUT', 'access-control-max-age': '600', 'strict-transport-security': 'max-age=1800;', 'x-trace-id': '3ca713e6b9b458137860a444d5a8c4a7', 'x-region': 'us-central1', 'via': '1.1 google', 'alt-svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'}, status_code: 401, body: {'detail': {'status': 'invalid_api_key', 'message': 'Invalid API key'}}
+2026-03-08 08:27:46,016 - INFO - DEBUG: Response status: 500
+2026-03-08 08:29:41,176 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:30:57,423 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/transcribe-audio
+2026-03-08 08:30:57,424 - INFO - DEBUG: Received audio for contact: Aarav, size: 477 bytes
+2026-03-08 08:30:57,424 - INFO - DEBUG: Uploading audio to Gemini File API (audio/webm)...
+2026-03-08 08:30:58,821 - INFO - DEBUG: Gemini file uploaded: files/f79bmow7m6ai
+2026-03-08 08:30:58,959 - INFO - DEBUG: Sending audio to Gemini for transcription + analysis...
+2026-03-08 08:31:05,435 - INFO - DEBUG: Gemini audio response length: 681
+2026-03-08 08:31:35,503 - ERROR - ERROR processing audio: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad79c51de6fac4fc0a2d1c, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 474, in transcribe_audio
+    inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 891, in insert_one
+    self._insert_one(
+    ~~~~~~~~~~~~~~~~^
+        document,
+        ^^^^^^^^^
+    ...<5 lines>...
+        comment=comment,
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 831, in _insert_one
+    self._database.client._retryable_write(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        acknowledged, _insert_command, session, operation=_Op.INSERT
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+    return self._retry_internal(
+           ~~~~~~~~~~~~~~~~~~~~^
+        func=func,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+    ).run()
+      ~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+    return self._read() if self._is_read else self._write()
+                                              ~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2873, in _write
+    self._server = self._get_server()
+                   ~~~~~~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2856, in _get_server
+    return self._client._select_server(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._server_selector,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=self._operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1833, in _select_server
+    server = topology.select_server(
+        server_selector,
+    ...<2 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 428, in select_server
+    server = self._select_server(
+        selector,
+    ...<4 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 402, in _select_server
+    servers = self.select_servers(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 298, in select_servers
+    server_descriptions = self._select_servers_loop(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers=deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 359, in _select_servers_loop
+    raise ServerSelectionTimeoutError(
+        f"{self._error_message(selector)}, Timeout: {timeout}s, Topology Description: {self.description!r}"
+    )
+pymongo.errors.ServerSelectionTimeoutError: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad79c51de6fac4fc0a2d1c, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+2026-03-08 08:31:35,507 - INFO - DEBUG: Response status: 500
+2026-03-08 08:31:48,218 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyze-screenshot
+2026-03-08 08:31:48,319 - INFO - DEBUG: Analyzing screenshot for contact: Aarav
+2026-03-08 08:31:57,541 - INFO - DEBUG: Gemini raw response length: 1305
+2026-03-08 08:32:27,790 - ERROR - ERROR in analyze_screenshot: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad79c51de6fac4fc0a2d1c, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 362, in analyze_screenshot
+    inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 891, in insert_one
+    self._insert_one(
+    ~~~~~~~~~~~~~~~~^
+        document,
+        ^^^^^^^^^
+    ...<5 lines>...
+        comment=comment,
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 831, in _insert_one
+    self._database.client._retryable_write(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        acknowledged, _insert_command, session, operation=_Op.INSERT
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+    return self._retry_internal(
+           ~~~~~~~~~~~~~~~~~~~~^
+        func=func,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+    ).run()
+      ~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+    return self._read() if self._is_read else self._write()
+                                              ~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2873, in _write
+    self._server = self._get_server()
+                   ~~~~~~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2856, in _get_server
+    return self._client._select_server(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._server_selector,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=self._operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1833, in _select_server
+    server = topology.select_server(
+        server_selector,
+    ...<2 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 428, in select_server
+    server = self._select_server(
+        selector,
+    ...<4 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 402, in _select_server
+    servers = self.select_servers(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 298, in select_servers
+    server_descriptions = self._select_servers_loop(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers=deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 359, in _select_servers_loop
+    raise ServerSelectionTimeoutError(
+        f"{self._error_message(selector)}, Timeout: {timeout}s, Topology Description: {self.description!r}"
+    )
+pymongo.errors.ServerSelectionTimeoutError: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad79c51de6fac4fc0a2d1c, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+2026-03-08 08:32:27,791 - INFO - DEBUG: Response status: 500
+2026-03-08 08:33:16,709 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyze-screenshot
+2026-03-08 08:33:16,710 - INFO - DEBUG: Analyzing screenshot for contact: Aarav
+2026-03-08 08:33:27,193 - INFO - DEBUG: Gemini raw response length: 1433
+2026-03-08 08:33:27,193 - ERROR - ERROR decoding JSON from Gemini: Expecting ',' delimiter: line 21 column 138 (char 507). Raw: {
+  "extracted_text": [
+    {
+      "sender": "partner",
+      "text": "Ur a great dude"
+    },
+    {
+      "sender": "self",
+      "text": "Thanks man. It's been great"
+    },
+    {
+      "sender": "
+2026-03-08 08:33:27,193 - INFO - DEBUG: Response status: 500
+2026-03-08 08:33:42,524 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:34:29,702 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyze-screenshot
+2026-03-08 08:34:29,774 - INFO - DEBUG: Analyzing screenshot for contact: Aarav
+2026-03-08 08:34:40,115 - INFO - DEBUG: Gemini raw response length: 1427
+2026-03-08 08:35:10,218 - ERROR - ERROR in analyze_screenshot: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7ab7784546edcbcd7085, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 362, in analyze_screenshot
+    inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 891, in insert_one
+    self._insert_one(
+    ~~~~~~~~~~~~~~~~^
+        document,
+        ^^^^^^^^^
+    ...<5 lines>...
+        comment=comment,
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 831, in _insert_one
+    self._database.client._retryable_write(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        acknowledged, _insert_command, session, operation=_Op.INSERT
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+    return self._retry_internal(
+           ~~~~~~~~~~~~~~~~~~~~^
+        func=func,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+    ).run()
+      ~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+    return self._read() if self._is_read else self._write()
+                                              ~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2873, in _write
+    self._server = self._get_server()
+                   ~~~~~~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2856, in _get_server
+    return self._client._select_server(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._server_selector,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=self._operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1833, in _select_server
+    server = topology.select_server(
+        server_selector,
+    ...<2 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 428, in select_server
+    server = self._select_server(
+        selector,
+    ...<4 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 402, in _select_server
+    servers = self.select_servers(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 298, in select_servers
+    server_descriptions = self._select_servers_loop(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers=deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 359, in _select_servers_loop
+    raise ServerSelectionTimeoutError(
+        f"{self._error_message(selector)}, Timeout: {timeout}s, Topology Description: {self.description!r}"
+    )
+pymongo.errors.ServerSelectionTimeoutError: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7ab7784546edcbcd7085, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+2026-03-08 08:35:10,224 - INFO - DEBUG: Response status: 500
+2026-03-08 08:35:16,279 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/transcribe-audio
+2026-03-08 08:35:16,281 - INFO - DEBUG: Received audio for contact: Aarav, size: 18172 bytes
+2026-03-08 08:35:16,281 - INFO - DEBUG: Uploading audio to Gemini File API (audio/webm)...
+2026-03-08 08:35:17,677 - INFO - DEBUG: Gemini file uploaded: files/uvzy6ag3sdfd
+2026-03-08 08:35:17,818 - INFO - DEBUG: Sending audio to Gemini for transcription + analysis...
+2026-03-08 08:35:26,400 - INFO - DEBUG: Gemini audio response length: 1056
+2026-03-08 08:35:56,797 - ERROR - ERROR processing audio: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7ab7784546edcbcd7085, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 474, in transcribe_audio
+    inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 891, in insert_one
+    self._insert_one(
+    ~~~~~~~~~~~~~~~~^
+        document,
+        ^^^^^^^^^
+    ...<5 lines>...
+        comment=comment,
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 831, in _insert_one
+    self._database.client._retryable_write(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        acknowledged, _insert_command, session, operation=_Op.INSERT
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+    return self._retry_internal(
+           ~~~~~~~~~~~~~~~~~~~~^
+        func=func,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+    ).run()
+      ~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+    return self._read() if self._is_read else self._write()
+                                              ~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2873, in _write
+    self._server = self._get_server()
+                   ~~~~~~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2856, in _get_server
+    return self._client._select_server(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._server_selector,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=self._operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1833, in _select_server
+    server = topology.select_server(
+        server_selector,
+    ...<2 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 428, in select_server
+    server = self._select_server(
+        selector,
+    ...<4 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 402, in _select_server
+    servers = self.select_servers(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 298, in select_servers
+    server_descriptions = self._select_servers_loop(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers=deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 359, in _select_servers_loop
+    raise ServerSelectionTimeoutError(
+        f"{self._error_message(selector)}, Timeout: {timeout}s, Topology Description: {self.description!r}"
+    )
+pymongo.errors.ServerSelectionTimeoutError: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7ab7784546edcbcd7085, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+2026-03-08 08:35:56,798 - INFO - DEBUG: Response status: 500
+2026-03-08 08:36:24,314 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:36:58,397 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyze-screenshot
+2026-03-08 08:36:58,405 - INFO - DEBUG: Analyzing screenshot for contact: aarav
+2026-03-08 08:37:08,494 - INFO - DEBUG: Gemini raw response length: 1295
+2026-03-08 08:37:24,789 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/
+2026-03-08 08:37:24,790 - INFO - DEBUG: Response status: 200
+2026-03-08 08:37:39,032 - ERROR - ERROR in analyze_screenshot: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7b58089a89b0b07c57a5, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 362, in analyze_screenshot
+    inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 891, in insert_one
+    self._insert_one(
+    ~~~~~~~~~~~~~~~~^
+        document,
+        ^^^^^^^^^
+    ...<5 lines>...
+        comment=comment,
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 831, in _insert_one
+    self._database.client._retryable_write(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        acknowledged, _insert_command, session, operation=_Op.INSERT
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+    return self._retry_internal(
+           ~~~~~~~~~~~~~~~~~~~~^
+        func=func,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+    ).run()
+      ~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+    return self._read() if self._is_read else self._write()
+                                              ~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2873, in _write
+    self._server = self._get_server()
+                   ~~~~~~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2856, in _get_server
+    return self._client._select_server(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._server_selector,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=self._operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1833, in _select_server
+    server = topology.select_server(
+        server_selector,
+    ...<2 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 428, in select_server
+    server = self._select_server(
+        selector,
+    ...<4 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 402, in _select_server
+    servers = self.select_servers(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 298, in select_servers
+    server_descriptions = self._select_servers_loop(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers=deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 359, in _select_servers_loop
+    raise ServerSelectionTimeoutError(
+        f"{self._error_message(selector)}, Timeout: {timeout}s, Topology Description: {self.description!r}"
+    )
+pymongo.errors.ServerSelectionTimeoutError: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7b58089a89b0b07c57a5, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+2026-03-08 08:37:39,035 - INFO - DEBUG: Response status: 500
+2026-03-08 08:37:58,091 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyze-screenshot
+2026-03-08 08:37:58,092 - INFO - DEBUG: Analyzing screenshot for contact: Aarav
+2026-03-08 08:38:06,143 - INFO - DEBUG: Gemini raw response length: 1282
+2026-03-08 08:38:36,202 - ERROR - ERROR in analyze_screenshot: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7b58089a89b0b07c57a5, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 362, in analyze_screenshot
+    inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 891, in insert_one
+    self._insert_one(
+    ~~~~~~~~~~~~~~~~^
+        document,
+        ^^^^^^^^^
+    ...<5 lines>...
+        comment=comment,
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 831, in _insert_one
+    self._database.client._retryable_write(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        acknowledged, _insert_command, session, operation=_Op.INSERT
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+    return self._retry_internal(
+           ~~~~~~~~~~~~~~~~~~~~^
+        func=func,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+    ).run()
+      ~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+    return self._read() if self._is_read else self._write()
+                                              ~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2873, in _write
+    self._server = self._get_server()
+                   ~~~~~~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2856, in _get_server
+    return self._client._select_server(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._server_selector,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=self._operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1833, in _select_server
+    server = topology.select_server(
+        server_selector,
+    ...<2 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 428, in select_server
+    server = self._select_server(
+        selector,
+    ...<4 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 402, in _select_server
+    servers = self.select_servers(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 298, in select_servers
+    server_descriptions = self._select_servers_loop(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers=deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 359, in _select_servers_loop
+    raise ServerSelectionTimeoutError(
+        f"{self._error_message(selector)}, Timeout: {timeout}s, Topology Description: {self.description!r}"
+    )
+pymongo.errors.ServerSelectionTimeoutError: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7b58089a89b0b07c57a5, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+2026-03-08 08:38:36,205 - INFO - DEBUG: Response status: 500
+2026-03-08 08:38:58,451 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyze-screenshot
+2026-03-08 08:38:58,452 - INFO - DEBUG: Analyzing screenshot for contact: Aarav
+2026-03-08 08:39:07,994 - INFO - DEBUG: Gemini raw response length: 1350
+2026-03-08 08:39:11,238 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyze-screenshot
+2026-03-08 08:39:11,239 - INFO - DEBUG: Analyzing screenshot for contact: Aarav
+2026-03-08 08:39:27,436 - INFO - DEBUG: Gemini raw response length: 1241
+2026-03-08 08:39:38,370 - ERROR - ERROR in analyze_screenshot: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7b58089a89b0b07c57a5, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 362, in analyze_screenshot
+    inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 891, in insert_one
+    self._insert_one(
+    ~~~~~~~~~~~~~~~~^
+        document,
+        ^^^^^^^^^
+    ...<5 lines>...
+        comment=comment,
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 831, in _insert_one
+    self._database.client._retryable_write(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        acknowledged, _insert_command, session, operation=_Op.INSERT
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+    return self._retry_internal(
+           ~~~~~~~~~~~~~~~~~~~~^
+        func=func,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+    ).run()
+      ~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+    return self._read() if self._is_read else self._write()
+                                              ~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2873, in _write
+    self._server = self._get_server()
+                   ~~~~~~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2856, in _get_server
+    return self._client._select_server(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._server_selector,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=self._operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1833, in _select_server
+    server = topology.select_server(
+        server_selector,
+    ...<2 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 428, in select_server
+    server = self._select_server(
+        selector,
+    ...<4 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 402, in _select_server
+    servers = self.select_servers(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 298, in select_servers
+    server_descriptions = self._select_servers_loop(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers=deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 359, in _select_servers_loop
+    raise ServerSelectionTimeoutError(
+        f"{self._error_message(selector)}, Timeout: {timeout}s, Topology Description: {self.description!r}"
+    )
+pymongo.errors.ServerSelectionTimeoutError: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7b58089a89b0b07c57a5, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+2026-03-08 08:39:38,372 - INFO - DEBUG: Response status: 500
+2026-03-08 08:39:57,649 - ERROR - ERROR in analyze_screenshot: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7b58089a89b0b07c57a5, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 362, in analyze_screenshot
+    inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 891, in insert_one
+    self._insert_one(
+    ~~~~~~~~~~~~~~~~^
+        document,
+        ^^^^^^^^^
+    ...<5 lines>...
+        comment=comment,
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 831, in _insert_one
+    self._database.client._retryable_write(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        acknowledged, _insert_command, session, operation=_Op.INSERT
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+    return self._retry_internal(
+           ~~~~~~~~~~~~~~~~~~~~^
+        func=func,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+    ).run()
+      ~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+    return self._read() if self._is_read else self._write()
+                                              ~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2873, in _write
+    self._server = self._get_server()
+                   ~~~~~~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2856, in _get_server
+    return self._client._select_server(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._server_selector,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=self._operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1833, in _select_server
+    server = topology.select_server(
+        server_selector,
+    ...<2 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 428, in select_server
+    server = self._select_server(
+        selector,
+    ...<4 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 402, in _select_server
+    servers = self.select_servers(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 298, in select_servers
+    server_descriptions = self._select_servers_loop(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers=deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 359, in _select_servers_loop
+    raise ServerSelectionTimeoutError(
+        f"{self._error_message(selector)}, Timeout: {timeout}s, Topology Description: {self.description!r}"
+    )
+pymongo.errors.ServerSelectionTimeoutError: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7b58089a89b0b07c57a5, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+2026-03-08 08:39:57,653 - INFO - DEBUG: Response status: 500
+2026-03-08 08:40:57,293 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyze-screenshot
+2026-03-08 08:40:57,294 - INFO - DEBUG: Analyzing screenshot for contact: Aarav
+2026-03-08 08:41:13,028 - INFO - DEBUG: Gemini raw response length: 1453
+2026-03-08 08:41:43,031 - ERROR - ERROR in analyze_screenshot: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7b58089a89b0b07c57a5, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Traceback (most recent call last):
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/main.py", line 362, in analyze_screenshot
+    inserted_result = await db.analyses.insert_one(analysis_doc.model_dump())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 891, in insert_one
+    self._insert_one(
+    ~~~~~~~~~~~~~~~~^
+        document,
+        ^^^^^^^^^
+    ...<5 lines>...
+        comment=comment,
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/collection.py", line 831, in _insert_one
+    self._database.client._retryable_write(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        acknowledged, _insert_command, session, operation=_Op.INSERT
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+    return self._retry_internal(
+           ~~~~~~~~~~~~~~~~~~~~^
+        func=func,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+    ).run()
+      ~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+    return self._read() if self._is_read else self._write()
+                                              ~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2873, in _write
+    self._server = self._get_server()
+                   ~~~~~~~~~~~~~~~~^^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 2856, in _get_server
+    return self._client._select_server(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._server_selector,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        operation_id=self._operation_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/mongo_client.py", line 1833, in _select_server
+    server = topology.select_server(
+        server_selector,
+    ...<2 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 428, in select_server
+    server = self._select_server(
+        selector,
+    ...<4 lines>...
+        operation_id=operation_id,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 402, in _select_server
+    servers = self.select_servers(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 298, in select_servers
+    server_descriptions = self._select_servers_loop(
+        selector,
+    ...<4 lines>...
+        deprioritized_servers=deprioritized_servers,
+    )
+  File "/Users/navee/Desktop/Hack-AI-Project/backend/venv/lib/python3.14/site-packages/pymongo/synchronous/topology.py", line 359, in _select_servers_loop
+    raise ServerSelectionTimeoutError(
+        f"{self._error_message(selector)}, Timeout: {timeout}s, Topology Description: {self.description!r}"
+    )
+pymongo.errors.ServerSelectionTimeoutError: ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 69ad7b58089a89b0b07c57a5, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-00.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-01.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('ac-00wffxx-shard-00-02.l9fbtfd.mongodb.net:27017: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+2026-03-08 08:41:43,032 - INFO - DEBUG: Response status: 500
+2026-03-08 08:42:05,387 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:42:27,369 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:42:49,896 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:43:06,084 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyze-screenshot
+2026-03-08 08:43:06,099 - INFO - DEBUG: Analyzing screenshot for contact: Aarav
+2026-03-08 08:43:16,829 - INFO - DEBUG: Gemini raw response length: 1239
+2026-03-08 08:43:17,401 - INFO - DEBUG: Screenshot analysis saved with ID: 69ad7cf42feba31edb95a1be
+2026-03-08 08:43:17,401 - INFO - DEBUG: Response status: 200
+2026-03-08 08:44:25,674 - INFO - DEBUG: Incoming request: GET http://localhost:8000/analyses
+2026-03-08 08:44:25,770 - INFO - DEBUG: Response status: 200
+2026-03-08 08:46:13,899 - INFO - DEBUG: Incoming request: GET http://localhost:8000/stats
+2026-03-08 08:46:13,941 - INFO - DEBUG: Response status: 200
+2026-03-08 08:51:24,216 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/transcribe-audio
+2026-03-08 08:51:24,286 - INFO - DEBUG: Received audio for contact: Aarav, size: 41834 bytes
+2026-03-08 08:51:24,288 - INFO - DEBUG: Uploading audio to Gemini File API (audio/webm)...
+2026-03-08 08:51:25,656 - INFO - DEBUG: Gemini file uploaded: files/1c96k3hkwpnd
+2026-03-08 08:51:25,750 - INFO - DEBUG: Sending audio to Gemini for transcription + analysis...
+2026-03-08 08:51:30,950 - INFO - DEBUG: Gemini audio response length: 1148
+2026-03-08 08:51:31,004 - INFO - DEBUG: Audio analysis saved with ID: 69ad7ee22feba31edb95a1bf
+2026-03-08 08:51:31,006 - INFO - DEBUG: Response status: 200
+2026-03-08 08:54:32,322 - INFO - DEBUG: Incoming request: GET http://localhost:8000/stats
+2026-03-08 08:54:32,395 - INFO - DEBUG: Response status: 200
+2026-03-08 08:55:23,600 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:55:40,169 - INFO - DEBUG: Incoming request: GET http://localhost:8000/stats
+2026-03-08 08:55:40,760 - INFO - DEBUG: Response status: 200
+2026-03-08 08:56:25,844 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 08:56:34,749 - INFO - DEBUG: Incoming request: GET http://localhost:8000/stats
+2026-03-08 08:56:35,366 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:03,453 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:06:03,454 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:06:03,454 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:06:03,455 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:03,455 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:03,455 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:03,524 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:06:03,529 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:06:03,530 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:03,530 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:06:03,647 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:03,993 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:19,688 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:06:19,718 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:06:19,719 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:06:19,719 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:19,805 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:19,875 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:35,360 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:06:35,360 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:06:35,360 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:06:35,361 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:35,479 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:35,514 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:36,207 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:06:36,207 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:06:36,208 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:06:36,208 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:36,384 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:36,442 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:48,928 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:06:48,952 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:06:48,960 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:06:48,961 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:49,048 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:49,112 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:52,163 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:06:52,164 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:06:52,165 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:06:52,165 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:52,284 - INFO - DEBUG: Response status: 200
+2026-03-08 09:06:52,322 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:01,848 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:07:01,849 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:07:01,876 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:07:01,877 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:02,035 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:02,072 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:13,660 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:07:13,689 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:07:13,689 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:07:13,690 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:13,804 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:13,815 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:15,577 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:07:15,577 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:07:15,578 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:15,578 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:07:15,777 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:15,820 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:54,716 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:07:54,716 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:07:54,744 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:07:54,745 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:54,837 - INFO - DEBUG: Response status: 200
+2026-03-08 09:07:54,873 - INFO - DEBUG: Response status: 200
+2026-03-08 09:08:01,014 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14694280652
+2026-03-08 09:08:01,014 - INFO - DEBUG: Response status: 200
+2026-03-08 09:08:01,080 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14694280652
+2026-03-08 09:08:01,394 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 400 Bad Request"
+2026-03-08 09:08:01,395 - INFO - DEBUG: Response status: 500
+2026-03-08 09:10:15,284 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 09:11:04,470 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 09:11:28,806 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=1469421469428065280652
+2026-03-08 09:11:28,806 - INFO - DEBUG: Response status: 200
+2026-03-08 09:11:28,967 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=1469421469428065280652
+2026-03-08 09:11:29,099 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 400 Bad Request"
+2026-03-08 09:11:29,100 - ERROR - Vapi API Error Status 400: {"message":["assistant.property transcription should not exist","customer.number must be a valid phone number in the E.164 format. Hot tip, you may be missing the country code (Eg. US: +1)."],"error":"Bad Request","statusCode":400}
+2026-03-08 09:11:29,100 - INFO - DEBUG: Response status: 500
+2026-03-08 09:11:50,422 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=146942806521469421469428065280652
+2026-03-08 09:11:50,422 - INFO - DEBUG: Response status: 200
+2026-03-08 09:11:50,488 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=146942806521469421469428065280652
+2026-03-08 09:11:50,658 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 400 Bad Request"
+2026-03-08 09:11:50,658 - ERROR - Vapi API Error Status 400: {"message":["assistant.property transcription should not exist","customer.number must be a valid phone number in the E.164 format. Hot tip, you may be missing the country code (Eg. US: +1)."],"error":"Bad Request","statusCode":400}
+2026-03-08 09:11:50,659 - INFO - DEBUG: Response status: 500
+2026-03-08 09:12:09,133 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14694280652146942806521469421469428065280652
+2026-03-08 09:12:09,133 - INFO - DEBUG: Response status: 200
+2026-03-08 09:12:09,260 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14694280652146942806521469421469428065280652
+2026-03-08 09:12:09,414 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 400 Bad Request"
+2026-03-08 09:12:09,416 - ERROR - Vapi API Error Status 400: {"message":["assistant.property transcription should not exist","customer.number must be a valid phone number in the E.164 format. Hot tip, you may be missing the country code (Eg. US: +1).","customer.number must be shorter than or equal to 40 characters"],"error":"Bad Request","statusCode":400}
+2026-03-08 09:12:09,417 - INFO - DEBUG: Response status: 500
+2026-03-08 09:12:44,456 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14694280652
+2026-03-08 09:12:44,607 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 400 Bad Request"
+2026-03-08 09:12:44,610 - ERROR - Vapi API Error Status 400: {"message":["assistant.property transcription should not exist"],"error":"Bad Request","statusCode":400}
+2026-03-08 09:12:44,611 - INFO - DEBUG: Response status: 500
+2026-03-08 09:14:09,321 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 09:14:33,999 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14694280652
+2026-03-08 09:14:35,545 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 201 Created"
+2026-03-08 09:14:35,545 - INFO - DEBUG: Vapi Outbound call successful, Call ID: 019ccdcc-c19a-799f-8b59-63b6ff4ce831
+2026-03-08 09:14:35,546 - INFO - DEBUG: Response status: 200
+2026-03-08 09:15:13,197 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14694280652
+2026-03-08 09:15:14,518 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 201 Created"
+2026-03-08 09:15:14,519 - INFO - DEBUG: Vapi Outbound call successful, Call ID: 019ccdcd-5b04-733e-a3b0-13d6aafae6f2
+2026-03-08 09:15:14,519 - INFO - DEBUG: Response status: 200
+2026-03-08 09:18:20,287 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14694280652
+2026-03-08 09:18:20,290 - INFO - DEBUG: Response status: 200
+2026-03-08 09:18:20,354 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14694280652
+2026-03-08 09:18:21,578 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 201 Created"
+2026-03-08 09:18:21,581 - INFO - DEBUG: Vapi Outbound call successful, Call ID: 019ccdd0-3610-7ddc-b284-09eabe0ead26
+2026-03-08 09:18:21,582 - INFO - DEBUG: Response status: 200
+2026-03-08 09:20:00,210 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14694280652
+2026-03-08 09:20:01,315 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 201 Created"
+2026-03-08 09:20:01,315 - INFO - DEBUG: Vapi Outbound call successful, Call ID: 019ccdd1-bbc1-766e-892a-647372f4caed
+2026-03-08 09:20:01,316 - INFO - DEBUG: Response status: 200
+2026-03-08 09:20:14,459 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14694280652
+2026-03-08 09:20:15,468 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 201 Created"
+2026-03-08 09:20:15,470 - INFO - DEBUG: Vapi Outbound call successful, Call ID: 019ccdd1-f367-7000-916e-78f0d4f29126
+2026-03-08 09:20:15,470 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:21,662 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:22:21,663 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:21,696 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:22:21,696 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:22:21,696 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:21,696 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:21,728 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:22:21,764 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:22:21,765 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:22:21,765 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:22,426 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:22,462 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:23,908 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:22:23,909 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:22:23,910 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:22:23,910 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:24,036 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:24,073 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:27,248 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:22:27,249 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:22:27,249 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:22:27,249 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:27,448 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:27,491 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:28,728 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:22:28,728 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:22:28,729 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:22:28,729 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:28,843 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:28,978 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:34,246 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:22:34,246 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:22:34,277 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:22:34,277 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:34,364 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:34,408 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:56,569 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:22:56,569 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:22:56,569 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:22:56,570 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:56,766 - INFO - DEBUG: Response status: 200
+2026-03-08 09:22:56,803 - INFO - DEBUG: Response status: 200
+2026-03-08 09:29:15,871 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=4696794585
+2026-03-08 09:29:16,939 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 201 Created"
+2026-03-08 09:29:16,939 - INFO - DEBUG: Vapi Outbound call successful, Call ID: 019ccdda-3651-7ddc-b2a3-ee027e24428d
+2026-03-08 09:29:16,940 - INFO - DEBUG: Response status: 200
+2026-03-08 09:30:05,989 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=9522214067
+2026-03-08 09:30:07,117 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 201 Created"
+2026-03-08 09:30:07,117 - INFO - DEBUG: Vapi Outbound call successful, Call ID: 019ccdda-fa0d-766e-893c-f352756073cb
+2026-03-08 09:30:07,118 - INFO - DEBUG: Response status: 200
+2026-03-08 09:30:49,236 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=4696794585
+2026-03-08 09:30:50,309 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 201 Created"
+2026-03-08 09:30:50,309 - INFO - DEBUG: Vapi Outbound call successful, Call ID: 019ccddb-a33d-7668-b583-1823e006b87e
+2026-03-08 09:30:50,310 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,559 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:34:58,560 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,587 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:34:58,588 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,588 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:34:58,589 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:34:58,589 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:34:58,589 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:34:58,589 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,589 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,589 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,589 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,710 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:34:58,738 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:34:58,742 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:34:58,742 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,806 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:34:58,808 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,833 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,893 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,898 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:34:58,942 - INFO - DEBUG: Response status: 200
+2026-03-08 09:34:58,970 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:34:59,061 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:01,953 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:35:01,956 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:35:01,957 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:35:01,957 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:02,076 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:02,111 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:03,078 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:35:03,078 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:35:03,079 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:35:03,080 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:03,201 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:03,239 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:04,093 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:35:04,094 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:35:04,122 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:35:04,122 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:04,212 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:04,257 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:04,806 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:35:04,808 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:35:04,809 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:04,809 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:35:05,001 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:05,042 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:05,862 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:35:05,862 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:35:05,862 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:05,863 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:35:06,056 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:06,091 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:07,127 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:35:07,128 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:35:07,130 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:35:07,130 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:07,247 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:07,282 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:07,889 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:35:07,889 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:35:07,891 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:35:07,891 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:07,974 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:08,059 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:17,825 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 09:35:42,793 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:35:42,828 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:35:42,828 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:35:42,829 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:42,928 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:35:42,928 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:43,429 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:43,513 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:43,529 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:35:43,578 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:43,593 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:35:43,685 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:50,502 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:35:50,615 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:35:50,615 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:35:50,616 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:50,694 - INFO - DEBUG: Response status: 200
+2026-03-08 09:35:50,768 - INFO - DEBUG: Response status: 200
+2026-03-08 09:37:29,818 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/
+2026-03-08 09:37:29,820 - INFO - DEBUG: Response status: 200
+2026-03-08 09:37:29,891 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/favicon.ico
+2026-03-08 09:37:29,891 - INFO - DEBUG: Response status: 404
+2026-03-08 09:37:35,682 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:37:35,716 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:37:35,727 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:37:35,728 - INFO - DEBUG: Response status: 200
+2026-03-08 09:37:35,801 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:37:35,801 - INFO - DEBUG: Response status: 200
+2026-03-08 09:37:35,810 - INFO - DEBUG: Response status: 200
+2026-03-08 09:37:35,883 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:37:35,892 - INFO - DEBUG: Response status: 200
+2026-03-08 09:37:35,993 - INFO - DEBUG: Response status: 200
+2026-03-08 09:37:36,023 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:37:36,106 - INFO - DEBUG: Response status: 200
+2026-03-08 09:37:51,547 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:37:51,575 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:37:51,576 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:37:51,576 - INFO - DEBUG: Response status: 200
+2026-03-08 09:37:51,751 - INFO - DEBUG: Response status: 200
+2026-03-08 09:37:51,812 - INFO - DEBUG: Response status: 200
+2026-03-08 09:38:31,047 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stream/Mark-SMS-Live
+2026-03-08 09:38:31,091 - INFO - DEBUG: Response status: 200
+2026-03-08 09:38:45,763 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:38:45,791 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:38:45,791 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:38:45,792 - INFO - DEBUG: Response status: 200
+2026-03-08 09:38:45,877 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:38:45,878 - INFO - DEBUG: Response status: 200
+2026-03-08 09:38:45,900 - INFO - DEBUG: Response status: 200
+2026-03-08 09:38:46,006 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:38:46,017 - INFO - DEBUG: Response status: 200
+2026-03-08 09:38:46,069 - INFO - DEBUG: Response status: 200
+2026-03-08 09:38:46,128 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:38:46,292 - INFO - DEBUG: Response status: 200
+2026-03-08 09:39:05,183 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:39:05,213 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:39:05,213 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:39:05,214 - INFO - DEBUG: Response status: 200
+2026-03-08 09:39:05,306 - INFO - DEBUG: Response status: 200
+2026-03-08 09:39:05,369 - INFO - DEBUG: Response status: 200
+2026-03-08 09:39:56,683 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stream/Mark-SMS-Live
+2026-03-08 09:39:56,723 - INFO - DEBUG: Response status: 200
+2026-03-08 09:40:17,786 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:40:17,786 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:40:17,789 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:40:17,794 - INFO - DEBUG: Response status: 200
+2026-03-08 09:40:17,867 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:40:17,868 - INFO - DEBUG: Response status: 200
+2026-03-08 09:40:18,073 - INFO - DEBUG: Response status: 200
+2026-03-08 09:40:18,074 - INFO - DEBUG: Response status: 200
+2026-03-08 09:40:18,181 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:40:18,181 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:40:18,228 - INFO - DEBUG: Response status: 200
+2026-03-08 09:40:18,278 - INFO - DEBUG: Response status: 200
+2026-03-08 09:40:26,587 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:40:26,617 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:40:26,617 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:40:26,618 - INFO - DEBUG: Response status: 200
+2026-03-08 09:40:26,711 - INFO - DEBUG: Response status: 200
+2026-03-08 09:40:26,774 - INFO - DEBUG: Response status: 200
+2026-03-08 09:41:06,321 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/
+2026-03-08 09:41:06,325 - INFO - DEBUG: Response status: 200
+2026-03-08 09:41:12,688 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:41:12,688 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:41:12,721 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:41:12,721 - INFO - DEBUG: Response status: 200
+2026-03-08 09:41:12,789 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:41:12,790 - INFO - DEBUG: Response status: 200
+2026-03-08 09:41:12,839 - INFO - DEBUG: Response status: 200
+2026-03-08 09:41:12,860 - INFO - DEBUG: Response status: 200
+2026-03-08 09:41:12,904 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:41:12,949 - INFO - DEBUG: Response status: 200
+2026-03-08 09:41:13,082 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:41:13,168 - INFO - DEBUG: Response status: 200
+2026-03-08 09:41:21,965 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:41:21,965 - INFO - DEBUG: Response status: 200
+2026-03-08 09:41:21,988 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:41:21,994 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:41:22,142 - INFO - DEBUG: Response status: 200
+2026-03-08 09:41:22,151 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:01,888 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/dashboard
+2026-03-08 09:42:01,890 - INFO - DEBUG: Response status: 404
+2026-03-08 09:42:18,298 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:42:18,299 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:42:18,331 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:42:18,333 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:18,397 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:42:18,398 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:18,425 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:18,462 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:18,490 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:42:18,631 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:18,681 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:42:18,766 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:27,532 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:42:27,565 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:42:27,566 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:27,566 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:42:27,654 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:27,728 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:37,365 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 09:42:37,366 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 09:42:37,366 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 09:42:37,366 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:37,540 - INFO - DEBUG: Response status: 200
+2026-03-08 09:42:37,585 - INFO - DEBUG: Response status: 200
+2026-03-08 09:58:49,561 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14696794585
+2026-03-08 09:58:49,564 - INFO - DEBUG: Response status: 200
+2026-03-08 09:58:49,630 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/initiate-call?to_number=14696794585
+2026-03-08 09:58:51,143 - INFO - HTTP Request: POST https://api.vapi.ai/call/phone "HTTP/1.1 201 Created"
+2026-03-08 09:58:51,143 - INFO - DEBUG: Vapi Outbound call successful, Call ID: 019ccdf5-471e-7000-9864-be2231888e68
+2026-03-08 09:58:51,143 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:03,994 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:03,995 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:04,078 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:04,078 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:04,079 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:04,079 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:04,178 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:04,211 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:04,211 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:04,213 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:04,559 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:04,593 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:05,257 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:05,258 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:05,258 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:05,258 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:05,343 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:05,415 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:05,885 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:05,885 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:05,886 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:05,917 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:05,970 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:06,002 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:06,595 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:06,595 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:06,599 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:06,599 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:06,680 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:06,714 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:07,846 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:07,848 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:07,848 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:07,848 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:07,969 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:08,009 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:10,719 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:10,720 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:10,722 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:10,723 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:10,856 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:10,990 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:12,102 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:12,103 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:12,106 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:12,107 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:12,227 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:12,261 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:13,666 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:13,666 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:13,667 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:13,667 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:13,787 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:13,820 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:14,295 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:14,295 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:14,296 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:14,296 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:14,377 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:14,417 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:15,745 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:15,745 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:15,746 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:15,746 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:15,872 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:15,915 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:17,495 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:17,495 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:17,496 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:17,496 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:17,617 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:17,651 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:20,122 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:20,122 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:20,123 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:20,123 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:20,242 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:20,277 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:23,979 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:23,980 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:23,983 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:23,984 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:24,181 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:24,225 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:28,028 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:28,029 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:28,032 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:28,032 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:28,152 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:28,187 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:29,685 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:29,686 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:29,688 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:29,713 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:29,910 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:29,913 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:31,298 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:31,299 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:31,300 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:31,300 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:31,481 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:31,524 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:32,811 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:32,812 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:32,812 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:32,814 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:32,928 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:33,057 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:34,174 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:34,175 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:34,175 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:34,175 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:34,296 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:34,334 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:37,619 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:03:37,619 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:03:37,734 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:03:37,735 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:37,809 - INFO - DEBUG: Response status: 200
+2026-03-08 10:03:37,855 - INFO - DEBUG: Response status: 200
+2026-03-08 10:04:03,451 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:04:03,451 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:04:03,451 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:04:03,453 - INFO - DEBUG: Response status: 200
+2026-03-08 10:04:03,571 - INFO - DEBUG: Response status: 200
+2026-03-08 10:04:03,616 - INFO - DEBUG: Response status: 200
+2026-03-08 10:05:38,192 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:05:38,224 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:05:38,224 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:05:38,226 - INFO - DEBUG: Response status: 200
+2026-03-08 10:05:38,353 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:05:38,353 - INFO - DEBUG: Response status: 200
+2026-03-08 10:05:38,401 - INFO - DEBUG: Response status: 200
+2026-03-08 10:05:38,439 - INFO - DEBUG: Response status: 200
+2026-03-08 10:05:38,473 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:05:38,516 - INFO - DEBUG: Response status: 200
+2026-03-08 10:05:38,539 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:05:38,622 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:13,686 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:13,687 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:13,709 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:13,710 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:13,810 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:13,849 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:14,836 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:14,837 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:14,837 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:14,838 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:14,957 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:14,994 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:15,564 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:15,564 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:15,565 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:15,566 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:15,713 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:15,795 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:16,266 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:16,266 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:16,268 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:16,269 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:16,350 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:16,759 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:17,396 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:17,397 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:17,399 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:17,399 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:17,476 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:17,518 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:18,335 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:18,335 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:18,335 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:18,336 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:18,455 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:18,500 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:19,030 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:19,032 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:19,035 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:19,037 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:19,114 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:19,213 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:20,814 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:20,814 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:20,816 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:20,816 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:20,992 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:21,039 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:21,521 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:21,521 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:21,523 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:21,523 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:21,604 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:21,681 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:23,320 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:23,321 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:23,323 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:23,324 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:23,438 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:23,538 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:27,270 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:27,271 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:27,272 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:27,272 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:27,338 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:27,338 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:27,388 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:27,434 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:27,458 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:27,511 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:27,535 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:27,620 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:37,722 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:37,722 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:37,755 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:37,755 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:37,820 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:37,821 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:37,842 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:37,880 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:37,914 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:37,960 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:37,980 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:38,074 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:42,932 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:42,958 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:42,958 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:42,959 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:43,053 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:43,110 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:46,418 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:46,449 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:46,449 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:46,450 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:46,647 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:46,651 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:47,013 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:10:47,013 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:10:47,016 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:10:47,016 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:47,171 - INFO - DEBUG: Response status: 200
+2026-03-08 10:10:47,178 - INFO - DEBUG: Response status: 200
+2026-03-08 10:14:35,586 - INFO - --- BACKEND STARTING UP ---
+2026-03-08 10:16:00,426 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:16:00,429 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:00,442 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:16:00,442 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:16:00,442 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:16:00,442 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:16:00,442 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:16:00,442 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:00,442 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:00,442 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:00,442 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:00,443 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:00,491 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:16:00,510 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:16:00,511 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:00,512 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:16:00,663 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:16:00,663 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:01,267 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:01,330 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:16:01,340 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:01,419 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:01,564 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:16:01,713 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:06,769 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/analyses
+2026-03-08 10:16:06,770 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/conversations
+2026-03-08 10:16:06,770 - INFO - DEBUG: Incoming request: GET https://unevangelized-karolyn-workmanly.ngrok-free.dev/stats
+2026-03-08 10:16:06,770 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:06,955 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:06,992 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:16,252 - INFO - DEBUG: Incoming request: OPTIONS https://unevangelized-karolyn-workmanly.ngrok-free.dev/recommend-therapists
+2026-03-08 10:16:16,252 - INFO - DEBUG: Response status: 200
+2026-03-08 10:16:16,393 - INFO - DEBUG: Incoming request: POST https://unevangelized-karolyn-workmanly.ngrok-free.dev/recommend-therapists
+2026-03-08 10:16:18,602 - INFO - DEBUG: Response status: 200

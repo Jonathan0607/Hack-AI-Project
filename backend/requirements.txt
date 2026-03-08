@@ -7,10 +7,17 @@ python-multipart
 google-generativeai
 pillow
 elevenlabs
-<<<<<<< HEAD
-pytest
-analytics.stats_engine
-=======
+fastapi
+motor
+pydantic-settings
+uvicorn
+python-dotenv
+python-multipart
+google-generativeai
+pillow
+elevenlabs
 twilio
 websockets
->>>>>>> main
+ngrok
+pytest
+analytics.stats_engine
